@@ -1,84 +1,80 @@
 package com.jaf.recipebook;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Environment;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 public class Setup extends AppCompatActivity {
+
+    final int PER_WRITE_EXTERNAL_STORAGE = 1;
+    int grantForWrite = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setup);
-        boolean goodToGo = true;
 
-        //Start up checks
-        if(!checkPermissions()){
-            goodToGo = false;
-        }
-
-        //If successful setup, start mainActivity, otherwise, return warning and close app
-        if(goodToGo){
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-        } else {
-            String reasonsForFailure = "";
-            reasonsForFailure.concat(getFailedPermissions());
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Here's what went wrong:\n" + reasonsForFailure)
-                    .setCancelable(false)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            //Hard exit. Bad practice, but I need the app to close all the way.
-                            System.exit(-1);
-                        }
-                    });
-            AlertDialog alert = builder.create();
-            alert.show();
-        }
+        //Run setup after 2 seconds (Lets UI Load)
+        View view = findViewById(android.R.id.content);
+        view.postDelayed(new Runnable(){
+            public void run(){
+                getPermissions();
+            }
+        },2000);
     }
 
+    private void getPermissions(){
 
-
-    /**
-     * Get Permission Grants for application
-     * @return true if all permissions have been granted, otherwise false.
-     */
-    protected boolean checkPermissions(){
         //Check & Request access (if not already granted) for individual permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
-        }
-
-        //Check if user granted them
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            return true;
-        }else {
-            return false;
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PER_WRITE_EXTERNAL_STORAGE);
+        } else {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
         }
     }
 
-    /**
-     * Get all permissions that were not granted, separated with newline
-     * @return String of permissions separated by newline
-     */
-    protected String getFailedPermissions() {
-        String failedPermissions = "";
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            failedPermissions.concat("External Storage Write Permission not granted\n");
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PER_WRITE_EXTERNAL_STORAGE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    grantForWrite = 1;
+                } else {
+                    String errorMsg = "This app will not work without this permission. No data of yours will be collected.";
+                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+                    grantForWrite = -1;
+                }
+            }
+
+            // other 'case' lines to check for other permissions
         }
 
-        return failedPermissions;
+        if(grantForWrite == 1){
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        } else if(grantForWrite == -1){
+            View view = findViewById(android.R.id.content);
+            view.postDelayed(new Runnable(){
+                public void run(){
+                    System.exit(0);
+                }
+            },5000);
+        }
+
     }
 }
