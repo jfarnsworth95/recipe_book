@@ -1,28 +1,29 @@
 package com.jaf.recipebook;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
+import android.content.Context;
 import android.os.Bundle;
-import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import java.io.File;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -31,35 +32,24 @@ public class MainActivity extends AppCompatActivity {
                 fab_onClick(view);
             }
         });
+
+        listView = (ListView) findViewById(R.id.recipe_list_view);
+        String[] recipeTitles = getRecipeDirs();
+
+        if(recipeTitles.length != 0) {
+            RecipeListAdapter adapter = new RecipeListAdapter(this,recipeTitles);
+            listView.setAdapter(adapter);
+        }
     }
 
-    public void fab_onClick(View view){
+    public String[] getRecipeDirs() {
+        //Check external app dir for sub dirs
+        return new String[0];
+    }
 
-        //File publicStorageDir = Environment.getExternalStorageDirectory();
-        String mainDir = "RecipeBook";
-        File f = new File(Environment.getExternalStorageDirectory(), mainDir);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            Snackbar.make(view, "Permission not Granted", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-        } else {
-            Snackbar.make(view, "Permission Granted", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-        }
-
-//        if (!f.exists()) {
-//            if (f.mkdir()) {
-//                Snackbar.make(view, "Created Main Directory\n" + f, Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            } else {
-//                Snackbar.make(view, "Failed to create main directory\n" + f, Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        } else {
-//            Snackbar.make(view, "Directory already exists\n" + f, Snackbar.LENGTH_LONG)
-//                    .setAction("Action", null).show();
-//        }
+    public void fab_onClick(View view) {
+        Snackbar.make(view, "Soon, I'll add stuff", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 
     @Override
@@ -80,7 +70,32 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
+    }
+}
+
+//Adapter for ListView
+class RecipeListAdapter extends ArrayAdapter<String>{
+
+    Context context;
+    String[] title;
+
+    public RecipeListAdapter(@NonNull Context context, String[] titles) {
+        super(context, R.layout.recipe_list_template, R.id.list_view_title, titles);
+        this.context = context;
+        this.title = titles;
+    }
+
+    @NonNull
+    @Override
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View v = inflater.inflate(R.layout.recipe_list_template,parent,false);
+
+        TextView titles = v.findViewById(R.id.list_view_title);
+        titles.setText(title[position]);
+
+        return v;
     }
 }

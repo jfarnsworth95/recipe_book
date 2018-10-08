@@ -23,11 +23,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".MainActivity"
-            android:parentActivityName=".Setup">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".Setup" />
+        <activity android:name=".MainActivity">
         </activity>
     </application>
 
