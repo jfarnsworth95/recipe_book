@@ -39,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
         if(recipeTitles.length != 0) {
             RecipeListAdapter adapter = new RecipeListAdapter(this,recipeTitles);
             listView.setAdapter(adapter);
+        }else{
+            LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+            View noRecipeView = inflater.inflate(R.layout.recipe_list_empty, null);
+            setContentView(noRecipeView);
         }
     }
 
