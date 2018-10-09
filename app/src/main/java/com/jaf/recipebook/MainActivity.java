@@ -18,13 +18,12 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    ListView listView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Button to add recipes
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -33,16 +32,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        listView = (ListView) findViewById(R.id.recipe_list_view);
+
         String[] recipeTitles = getRecipeDirs();
 
         if(recipeTitles.length != 0) {
+            //Get ListView layout for inflating in data
+            ListView listView = (ListView) findViewById(R.id.recipe_list_view);
+
+            //inflate data from directories
             RecipeListAdapter adapter = new RecipeListAdapter(this,recipeTitles);
             listView.setAdapter(adapter);
         }else{
+            //Remove existing child view, replace with inflated layout
+            View currentChildView = findViewById(R.id.recipe_list_view);
+            ViewGroup parent = (ViewGroup) currentChildView.getParent();
+
+            //Inflate recipe_list_empty layout template
             LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-            View noRecipeView = inflater.inflate(R.layout.recipe_list_empty, null);
-            setContentView(noRecipeView);
+            View noRecipeView = inflater.inflate(R.layout.recipe_list_empty, parent, false);
+            parent.removeView(currentChildView);
+            parent.addView(noRecipeView);
         }
     }
 
