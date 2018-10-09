@@ -24,11 +24,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Button to add recipes
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab_add = (FloatingActionButton) findViewById(R.id.add_recipe_fab);
+        fab_add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fab_add_onClick(view);
+            }
+        });
+        //Button to edit recipes
+        FloatingActionButton fab_edit = (FloatingActionButton) findViewById(R.id.edit_recipe_fab);
+        fab_edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fab_edit_onClick(view);
+            }
+        });
+
+        //Button to edit recipes
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.add_recipe_fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fab_onClick(view);
+                fab_add_onClick(view);
             }
         });
 
@@ -57,11 +74,17 @@ public class MainActivity extends AppCompatActivity {
 
     public String[] getRecipeDirs() {
         //Check external app dir for sub dirs
-        return new String[0];
+        return new String[]{"Recipe 1","Recipe 2","Recipe 3","Recipe 4","Recipe 5","Recipe 6",
+                "Recipe 7","Recipe 8","Recipe 9","Recipe 10","Recipe 11","Recipe 12"};
     }
 
-    public void fab_onClick(View view) {
+    public void fab_add_onClick(View view) {
         Snackbar.make(view, "Soon, I'll add stuff", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
+
+    public void fab_edit_onClick(View view) {
+        Snackbar.make(view, "Soon, I'll edit stuff", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
     }
 
