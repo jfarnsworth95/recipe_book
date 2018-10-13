@@ -25,14 +25,4 @@
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_menu_add" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/edit_recipe_fab"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        app:layout_anchor="@+id/include2"
-        app:layout_anchorGravity="right|top"
-        app:srcCompat="@android:drawable/ic_menu_edit" />
-
 </android.support.design.widget.CoordinatorLayout>

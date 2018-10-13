@@ -1,6 +1,7 @@
 package com.jaf.recipebook;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -21,6 +22,8 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
+    public final static String RECIPE_EDIT = "com.jaf.recipebook.RECIPE_EDIT";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,16 +38,6 @@ public class MainActivity extends AppCompatActivity {
                 fab_add_onClick(view);
             }
         });
-
-        //Button to edit recipes
-        FloatingActionButton fab_edit = (FloatingActionButton) findViewById(R.id.edit_recipe_fab);
-        fab_edit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fab_edit_onClick(view);
-            }
-        });
-
 
         String[] recipeTitles = getRecipeDirs();
 
@@ -70,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Get all directories directly under the main app directory in external storage
-     * @return
+     * @return list of file names (Recipe Names)
      */
     public String[] getRecipeDirs() {
         String path = Environment.getExternalStorageDirectory().toString()+"/"
@@ -92,13 +85,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void fab_add_onClick(View view) {
-        Snackbar.make(view, "Soon, I'll add stuff", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-    }
+        Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
+        intent.putExtra(RECIPE_EDIT,"");
+        startActivity(intent);
 
-    public void fab_edit_onClick(View view) {
-        Snackbar.make(view, "Soon, I'll edit stuff", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+//        Snackbar.make(view, "Soon, I'll add stuff", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show();
     }
 
     @Override
