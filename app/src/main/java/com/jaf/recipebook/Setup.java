@@ -82,5 +82,6 @@ public class Setup extends AppCompatActivity {
     public void goToMain(){
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
+        finish();
     }
 }
