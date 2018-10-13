@@ -2,6 +2,7 @@ package com.jaf.recipebook;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -16,12 +17,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        checkExternalDirectory();
 
         //Button to add recipes
         FloatingActionButton fab_add = (FloatingActionButton) findViewById(R.id.add_recipe_fab);
@@ -31,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
                 fab_add_onClick(view);
             }
         });
+
         //Button to edit recipes
         FloatingActionButton fab_edit = (FloatingActionButton) findViewById(R.id.edit_recipe_fab);
         fab_edit.setOnClickListener(new View.OnClickListener() {
@@ -40,19 +45,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //Button to edit recipes
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.add_recipe_fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fab_add_onClick(view);
-            }
-        });
-
 
         String[] recipeTitles = getRecipeDirs();
 
-        if(recipeTitles.length != 0) {
+        if(recipeTitles == null || recipeTitles.length != 0) {
             //Get ListView layout for inflating in data
             ListView listView = (ListView) findViewById(R.id.recipe_list_view);
 
@@ -72,10 +68,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Get all directories directly under the main app directory in external storage
+     * @return
+     */
     public String[] getRecipeDirs() {
-        //Check external app dir for sub dirs
-        return new String[]{"Recipe 1","Recipe 2","Recipe 3","Recipe 4","Recipe 5","Recipe 6",
-                "Recipe 7","Recipe 8","Recipe 9","Recipe 10","Recipe 11","Recipe 12"};
+        String path = Environment.getExternalStorageDirectory().toString()+"/"
+                + getString(R.string.top_app_directory);
+
+        File directory = new File(path);
+        File[] files = directory.listFiles();
+
+        if(files == null || files.length == 0){
+            String[] none = {};
+            return none;
+        }
+
+        String[] fileNames = new String[files.length];
+        for(int i = 0; i < files.length; i ++){
+           fileNames[i] = files[i].getName();
+        }
+        return fileNames;
     }
 
     public void fab_add_onClick(View view) {
@@ -107,6 +120,21 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void checkExternalDirectory(){
+        View view = findViewById(android.R.id.content);
+        String mainDir = getString(R.string.top_app_directory);
+        File f = new File(Environment.getExternalStorageDirectory(), mainDir);
+
+        //Create main app directory if it doesn't exist
+        if (!f.exists()) {
+            if (!f.mkdir()) {
+                //Failure
+                Snackbar.make(view, "Failed to create main directory\n" + f, Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        }
     }
 }
 

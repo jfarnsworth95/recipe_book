@@ -47,23 +47,6 @@ public class Setup extends AppCompatActivity {
         }
     }
 
-    private void checkExternalDirectory(){
-        View view = findViewById(android.R.id.content);
-        String mainDir = "RecipeBook";
-        File f = new File(Environment.getExternalStorageDirectory(), mainDir);
-
-        if (!f.exists()) {
-            if (f.mkdir()) {
-                goToMain();
-            } else {
-                Snackbar.make(view, "Failed to create main directory\n" + f, Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        } else {
-            goToMain();
-        }
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -84,7 +67,8 @@ public class Setup extends AppCompatActivity {
         }
 
         if(grantForWrite == 1){
-            checkExternalDirectory();
+            //checkExternalDirectory();
+            goToMain();
         } else if(grantForWrite == -1){
             View view = findViewById(android.R.id.content);
             view.postDelayed(new Runnable(){
