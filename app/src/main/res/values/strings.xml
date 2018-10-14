@@ -4,6 +4,7 @@
     <string name="no_recipe_text">Looks like you don\'t have any recipes, you should add some!</string>
     <string name="recipe_edit_button">Edit</string>
     <string name="top_app_directory">RecipeBook</string>
+
     <string name="edit_recipe_title">Recipe Title</string>
     <string name="edit_recipe_tag">Tags</string>
     <string name="edit_recipe_tag_hint">Vegan, Low Calorie, &#8230;</string>
@@ -12,4 +13,6 @@
     <string name="edit_recipe_directions">Directions</string>
     <string name="edit_recipe_directions_hint">Sift flour and baking soda together&#8230;</string>
     <string name="button_save">Save Recipe</string>
+
+    <string name="file_seperator">#/\**/\#</string>
 </resources>

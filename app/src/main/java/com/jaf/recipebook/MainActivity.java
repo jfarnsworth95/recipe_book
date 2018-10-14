@@ -28,6 +28,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        displayPage();
+    }
+
+    @Override
+    public void onResume()
+    {  // After a pause OR at startup
+        super.onResume();
+        displayPage();
+    }
+
+    public void displayPage() {
         checkExternalDirectory();
 
         //Button to add recipes
@@ -39,16 +50,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        String[] recipeTitles = getRecipeDirs();
+        String[] recipeTitles = getRecipeFiles();
 
-        if(recipeTitles == null || recipeTitles.length != 0) {
+        if (recipeTitles == null || recipeTitles.length != 0) {
             //Get ListView layout for inflating in data
             ListView listView = (ListView) findViewById(R.id.recipe_list_view);
 
             //inflate data from directories
-            RecipeListAdapter adapter = new RecipeListAdapter(this,recipeTitles);
+            RecipeListAdapter adapter = new RecipeListAdapter(this, recipeTitles);
             listView.setAdapter(adapter);
-        }else{
+        } else {
             //Remove existing child view, replace with inflated layout
             View currentChildView = findViewById(R.id.recipe_list_view);
             ViewGroup parent = (ViewGroup) currentChildView.getParent();
@@ -65,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
      * Get all directories directly under the main app directory in external storage
      * @return list of file names (Recipe Names)
      */
-    public String[] getRecipeDirs() {
+    public String[] getRecipeFiles() {
         String path = Environment.getExternalStorageDirectory().toString()+"/"
                 + getString(R.string.top_app_directory);
 
@@ -77,20 +88,25 @@ public class MainActivity extends AppCompatActivity {
             return none;
         }
 
+        //TODO Remove tags.csv and ingredients.csv from list
+
+
+        //Get String names and remove file extension from name
         String[] fileNames = new String[files.length];
         for(int i = 0; i < files.length; i ++){
-           fileNames[i] = files[i].getName();
+           fileNames[i] = files[i].getName().replace(".csv", "");
         }
         return fileNames;
     }
 
+    /**
+     * Adds recipe, goes to new activity to allow user input
+     * @param view
+     */
     public void fab_add_onClick(View view) {
         Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
-        intent.putExtra(RECIPE_EDIT,"");
+        intent.putExtra(RECIPE_EDIT,false);
         startActivity(intent);
-
-//        Snackbar.make(view, "Soon, I'll add stuff", Snackbar.LENGTH_LONG)
-//                .setAction("Action", null).show();
     }
 
     @Override
