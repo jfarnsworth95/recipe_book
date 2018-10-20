@@ -23,6 +23,7 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity {
 
     public final static String RECIPE_EDIT = "com.jaf.recipebook.RECIPE_EDIT";
+    public final static String RECIPE_VIEW = "com.jaf.recipebook.RECIPE_VIEW";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +108,15 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
         intent.putExtra(RECIPE_EDIT,false);
         startActivity(intent);
+    }
+
+    public void onRecipeClicked(View view){
+        TextView tv = (TextView) view;
+        String recipeName = tv.getText().toString();
+
+//        Intent intent = new Intent(view.getContext(), ViewTest.class);
+//        intent.putExtra(RECIPE_VIEW,recipeName);
+//        startActivity(intent);
     }
 
     @Override

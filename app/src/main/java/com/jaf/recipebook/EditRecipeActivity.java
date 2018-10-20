@@ -1,10 +1,12 @@
 package com.jaf.recipebook;
 
 import android.content.Intent;
+import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
@@ -18,7 +20,7 @@ public class EditRecipeActivity extends AppCompatActivity {
     final int FILE_CREATED = 0;
     final int FILE_CREATE_FAILED = 1;
     final int FILE_ALREADY_EXISTS = 2;
-    final int UNKNOWN_ERROR = -1;
+    final int FILE_WRITE_ERROR = -1;
 
     boolean isRecipeBeingEdited;
 
@@ -51,27 +53,38 @@ public class EditRecipeActivity extends AppCompatActivity {
             String directionsText = directionsEditText.getText().toString();
 
             int fileStatus;
-            try {
-                fileStatus = createRecipeFile(titleText, ingredientsText, directionsText);
-            } catch (IOException ex){
-                fileStatus = UNKNOWN_ERROR;
-            }
+
+            fileStatus = createRecipeFile(titleText, ingredientsText, directionsText);
+
+
             switch (fileStatus){
                 case FILE_CREATED:
-                    Snackbar.make(view, "Created recipe file", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    Log.i("EditRecipeActivity","File (" + titleText + ".csv) successfully created");
+                    finishedEditing();
+                    break;
 
                 case FILE_CREATE_FAILED:
-                    Snackbar.make(view, "Failed to create recipe file", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    Log.e("EditRecipeActivity","File (" + titleText + ".csv) failed to create");
+                    finishedEditing();
+                    break;
 
                 case FILE_ALREADY_EXISTS:
-                    Snackbar.make(view, "Overwrote recipe file", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    //Pass/Fail depends if file is being edited or not
+                    if(isRecipeBeingEdited){
+                        Log.i("EditRecipeActivity","File (" + titleText + ".csv) successfully edited");
+                        finishedEditing();
+                    } else {
+                        Log.e("EditRecipeActivity","File (" + titleText + ".csv) already exists");
+                        Snackbar.make(view, "A recipe with that title already exists", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                    break;
 
-                case UNKNOWN_ERROR:
-                    Snackbar.make(view, "IO Error", Snackbar.LENGTH_LONG)
+                case FILE_WRITE_ERROR:
+                    Log.e("EditRecipeActivity","Encountered IO Error while writing to file(" + titleText + ".csv)");
+                    Snackbar.make(view, "Sorry, we couldn't add/edit that file. Check your permissions.", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
+                    break;
 
             }
         } else {
@@ -85,38 +98,36 @@ public class EditRecipeActivity extends AppCompatActivity {
      * @param recipeTitle title of recipe
      * @return 0 if success, 1 if failure, 2 if file already exists
      */
-    public int createRecipeFile(String recipeTitle, String recipeIngredients, String recipeDirections)throws IOException{
+    public int createRecipeFile(String recipeTitle, String recipeIngredients, String recipeDirections){
         //Get file resources
         View view = findViewById(android.R.id.content);
         String mainDir = getString(R.string.top_app_directory);
         File appDirectory = new File(Environment.getExternalStorageDirectory(), mainDir);
         File recipeFile = new File(appDirectory, recipeTitle + ".csv");
 
+        // initiate media scan and put the new things into the path array to
+        // make the scanner aware of the location and the files you want to see
+        MediaScannerConnection.scanFile(this, new String[] {recipeFile.getPath().toString()}, null, null);
+
         //Create main app directory if it doesn't exist
-        if (!recipeFile.exists()) {
-            if (!recipeFile.createNewFile()) {
-                //Failure
-                return FILE_CREATE_FAILED;
+        try {
+            if (!recipeFile.exists()) {
+                if (!recipeFile.createNewFile()) {
+                    //Failure
+                    return FILE_CREATE_FAILED;
+                } else {
+                    //Success
+                    writeDataToFile(recipeFile, false, recipeIngredients, recipeDirections);
+                    return FILE_CREATED;
+                }
             } else {
-                //Success
-                writeDataToFile(recipeFile,false,recipeIngredients,recipeDirections);
-                return FILE_CREATED;
-            }
-        }else{
-            //Pass/Fail depends if file is being edited or not
-            if(isRecipeBeingEdited){
-                //Expected result, now overwrite contents
-                writeDataToFile(recipeFile,true,recipeIngredients,recipeDirections);
-                return FILE_ALREADY_EXISTS;
-            } else {
-                //This shouldn't be happening
-                //TODO Have you tested this? Then why is this message still here?
-                Intent quitEditIntent = new Intent(this, MainActivity.class);
-                quitEditIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(quitEditIntent);
-                finish();
+                if(isRecipeBeingEdited) {
+                    writeDataToFile(recipeFile, true, recipeIngredients, recipeDirections);
+                }
                 return FILE_ALREADY_EXISTS;
             }
+        } catch (IOException ex){
+            return FILE_WRITE_ERROR;
         }
     }
 
@@ -131,10 +142,9 @@ public class EditRecipeActivity extends AppCompatActivity {
     public void writeDataToFile(File file, boolean shouldOverwriteFile,
                                 String ingredients, String directions) throws IOException {
         FileWriter writer = new FileWriter(file.getPath(),shouldOverwriteFile);
-        writer.write(ingredients);
-        writer.write(getString(R.string.file_seperator));
+        writer.write(ingredients + "\n");
+        writer.write(getString(R.string.file_seperator )+ "\n");
         writer.write(directions);
-
         writer.close();
     }
 
@@ -165,5 +175,12 @@ public class EditRecipeActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    public void finishedEditing(){
+        Intent quitEditIntent = new Intent(this, MainActivity.class);
+        quitEditIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(quitEditIntent);
+        finish();
     }
 }

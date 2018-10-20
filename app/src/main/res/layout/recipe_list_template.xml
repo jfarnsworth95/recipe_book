@@ -24,6 +24,7 @@
             android:text="Recipe Title"
             android:textSize="24sp"
             android:typeface="normal"
+            android:onClick="onRecipeClicked"
             app:fontFamily="sans-serif-condensed" />
 
     </LinearLayout>
