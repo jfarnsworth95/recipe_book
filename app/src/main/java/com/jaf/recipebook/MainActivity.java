@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         String[] recipeTitles = getRecipeFiles();
+        Arrays.sort(recipeTitles);
 
         if (recipeTitles == null || recipeTitles.length != 0) {
             //Get ListView layout for inflating in data
