@@ -8,6 +8,7 @@
 
 
     <ScrollView
+        android:id="@+id/recipeedit_scroll_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginEnd="4dp"
@@ -87,7 +88,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
-                android:text="@string/edit_recipe_ingredient"
+                android:text="@string/ingredients"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/editText_recipe_tags" />
 
@@ -120,7 +121,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
-                android:text="@string/edit_recipe_directions"
+                android:text="@string/directions"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/editText_recipe_ingredients" />
 

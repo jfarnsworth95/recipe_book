@@ -8,11 +8,12 @@
     <string name="edit_recipe_title">Recipe Title</string>
     <string name="edit_recipe_tag">Tags</string>
     <string name="edit_recipe_tag_hint">Vegan, Low Calorie, &#8230;</string>
-    <string name="edit_recipe_ingredient">Ingredients</string>
     <string name="edit_recipe_ingredient_hint">1 cup Flour\n1 tsp Baking Soda\n&#8230;</string>
-    <string name="edit_recipe_directions">Directions</string>
     <string name="edit_recipe_directions_hint">Sift flour and baking soda together&#8230;</string>
     <string name="button_save">Save Recipe</string>
 
-    <string name="file_seperator">#/\**/\#</string>
+    <string name="directions">Directions</string>
+    <string name="ingredients">Ingredients</string>
+
+    <string name="file_separator">#/\**/\#</string>
 </resources>

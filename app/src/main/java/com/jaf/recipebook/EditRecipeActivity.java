@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.EditText;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -143,7 +142,7 @@ public class EditRecipeActivity extends AppCompatActivity {
                                 String ingredients, String directions) throws IOException {
         FileWriter writer = new FileWriter(file.getPath(),shouldOverwriteFile);
         writer.write(ingredients + "\n");
-        writer.write(getString(R.string.file_seperator )+ "\n");
+        writer.write(getString(R.string.file_separator)+ "\n");
         writer.write(directions);
         writer.close();
     }

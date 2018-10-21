@@ -114,9 +114,9 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = (TextView) view;
         String recipeName = tv.getText().toString();
 
-//        Intent intent = new Intent(view.getContext(), ViewTest.class);
-//        intent.putExtra(RECIPE_VIEW,recipeName);
-//        startActivity(intent);
+        Intent intent = new Intent(view.getContext(), ViewRecipeActivity.class);
+        intent.putExtra(RECIPE_VIEW,recipeName);
+        startActivity(intent);
     }
 
     @Override
