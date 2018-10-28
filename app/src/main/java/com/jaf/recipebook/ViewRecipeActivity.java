@@ -13,6 +13,8 @@ import java.io.IOException;
 
 public class ViewRecipeActivity extends AppCompatActivity {
 
+    public String appDirectory;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,9 +22,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String recipeTitle = intent.getStringExtra(MainActivity.RECIPE_VIEW);
-
-        String mainDir = getString(R.string.top_app_directory);
-        File appDirectory = new File(Environment.getExternalStorageDirectory(), mainDir);
+        appDirectory = intent.getStringExtra(MainActivity.APP_FILE_DIR);
         File recipeFile = new File(appDirectory, recipeTitle + ".csv");
 
         try {

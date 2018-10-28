@@ -20,17 +20,18 @@ public class TagHelper {
     File tagFile;
     File mainDir;
 
+    final int STORAGE_INTERNAL = 0;
+    final int STORAGE_EXTERNAL = 1;
+
     /**
      * All methods should be called only after the main recipe file has been saved
      * <p>Helper class for modifying the tag file used for sorting on the main activity</p>
      * <p>Also used to return filtering of files</p>
      * @throws IOException
      */
-    public TagHelper() throws IOException {
+    public TagHelper(File appFileDir) throws IOException {
         //Get tag file, create if it doesn't exist
-        String mainDirName = Resources.getSystem().getString(R.string.top_app_directory);
-        mainDir = new File(Environment.getExternalStorageDirectory(), mainDirName);
-        tagFile = new File(mainDir, Resources.getSystem().getString(R.string.tag_file_name));
+        tagFile = new File(appFileDir, Resources.getSystem().getString(R.string.tag_file_name));
 
         //Create main app directory if it doesn't exist
         if (!tagFile.exists()) {
@@ -41,8 +42,7 @@ public class TagHelper {
         }
     }
 
-    //TODO set to take a list of tags as arg, this could be easily optimized to take less cycles
-    public boolean addTag(String recipeTitle, ArrayList<String> tags){
+    public boolean addTags(String recipeTitle, ArrayList<String> tags){
         //Create temp file for swapping
         File tmpFile = new File(mainDir, "tmp.txt");
 
@@ -131,7 +131,7 @@ public class TagHelper {
                     }
                 }
                 //check if any tags remain after removal
-                if(st.split(recipeTitle + ":").length == 0){
+                if(st.split(recipeTitle + ":,").length == 0){
                     //No tags, do not write line
                 } else {
                     writer.write(st);

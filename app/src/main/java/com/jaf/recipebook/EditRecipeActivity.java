@@ -8,11 +8,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class EditRecipeActivity extends AppCompatActivity {
 
@@ -22,6 +24,8 @@ public class EditRecipeActivity extends AppCompatActivity {
     final int FILE_WRITE_ERROR = -1;
 
     boolean isRecipeBeingEdited;
+    String appFileDir;
+    TagHelper tagHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +35,14 @@ public class EditRecipeActivity extends AppCompatActivity {
         // Get the Intent that started this activity and extract the string
         Intent intent = getIntent();
         isRecipeBeingEdited = intent.getBooleanExtra(MainActivity.RECIPE_EDIT,true);
+        appFileDir = intent.getStringExtra(MainActivity.APP_FILE_DIR);
+
+        try {
+            tagHelper = new TagHelper(new File(appFileDir));
+        }catch (IOException ex){
+            Snackbar.make(findViewById(android.R.id.content), "Failure interacting with the tag file",
+                    Snackbar.LENGTH_LONG).setAction("Action", null).show();
+        }
     }
 
     /**
@@ -46,14 +58,22 @@ public class EditRecipeActivity extends AppCompatActivity {
             EditText titleEditText = (EditText) findViewById(R.id.edit_text_recipe_title);
             EditText ingredientsEditText = (EditText) findViewById(R.id.editText_recipe_ingredients);
             EditText directionsEditText = (EditText) findViewById(R.id.editText_recipe_directions);
+            EditText tagsEditText = (EditText) findViewById(R.id.editText_recipe_tags);
 
             String titleText = titleEditText.getText().toString();
             String ingredientsText = ingredientsEditText.getText().toString();
             String directionsText = directionsEditText.getText().toString();
+            String tagsText = tagsEditText.getText().toString();
+
+            String[] tagList = tagsText.split(",");
+            ArrayList<String> tags = new ArrayList<String>();
+            for(String tag: tagList){
+                tags.add(tag.replaceAll("^\\s*",""));
+            }
 
             int fileStatus;
 
-            fileStatus = createRecipeFile(titleText, ingredientsText, directionsText);
+            fileStatus = createRecipeFile(titleText, ingredientsText, directionsText, tags);
 
 
             switch (fileStatus){
@@ -97,12 +117,11 @@ public class EditRecipeActivity extends AppCompatActivity {
      * @param recipeTitle title of recipe
      * @return 0 if success, 1 if failure, 2 if file already exists
      */
-    public int createRecipeFile(String recipeTitle, String recipeIngredients, String recipeDirections){
+    public int createRecipeFile(String recipeTitle, String recipeIngredients, String recipeDirections, ArrayList<String> tags){
         //Get file resources
         View view = findViewById(android.R.id.content);
-        String mainDir = getString(R.string.top_app_directory);
-        File appDirectory = new File(Environment.getExternalStorageDirectory(), mainDir);
-        File recipeFile = new File(appDirectory, recipeTitle + ".csv");
+
+        File recipeFile = new File(appFileDir, recipeTitle + ".csv");
 
         // initiate media scan and put the new things into the path array to
         // make the scanner aware of the location and the files you want to see
@@ -117,11 +136,13 @@ public class EditRecipeActivity extends AppCompatActivity {
                 } else {
                     //Success
                     writeDataToFile(recipeFile, false, recipeIngredients, recipeDirections);
+                    modifyRecipeTags(recipeTitle,tags);
                     return FILE_CREATED;
                 }
             } else {
                 if(isRecipeBeingEdited) {
                     writeDataToFile(recipeFile, true, recipeIngredients, recipeDirections);
+                    modifyRecipeTags(recipeTitle,tags);
                 }
                 return FILE_ALREADY_EXISTS;
             }
@@ -181,5 +202,15 @@ public class EditRecipeActivity extends AppCompatActivity {
         quitEditIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(quitEditIntent);
         finish();
+    }
+
+    public boolean modifyRecipeTags(String recipe, ArrayList<String> tags){
+        if(isRecipeBeingEdited) {
+            boolean removeSuccess = tagHelper.removeRecipe(recipe);
+            if(!removeSuccess){
+                return removeSuccess;
+            }
+        }
+        return tagHelper.addTags(recipe,tags);
     }
 }

@@ -21,11 +21,25 @@ public class MainActivity extends AppCompatActivity {
 
     public final static String RECIPE_EDIT = "com.jaf.recipebook.RECIPE_EDIT";
     public final static String RECIPE_VIEW = "com.jaf.recipebook.RECIPE_VIEW";
+    public final static String APP_FILE_DIR = "com.jaf.recipebook.APP_FILE_DIR";
+
+    final int STORAGE_INTERNAL = 0;
+    final int STORAGE_EXTERNAL = 1;
+    public int storageOption;
+    public String appFileDir;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Intent intent = getIntent();
+        storageOption = intent.getIntExtra(Setup.STORAGE_OPTION,0);
+        if(storageOption == STORAGE_EXTERNAL){
+            appFileDir = Environment.getExternalStorageDirectory().getPath() + getString(R.string.top_app_directory);
+        } else {
+            appFileDir = getFilesDir().getPath();
+        }
         displayPage();
     }
 
@@ -37,7 +51,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displayPage() {
-        checkExternalDirectory();
+        if(storageOption == STORAGE_EXTERNAL) {
+            checkExternalDirectory();
+        }
 
         //Button to add recipes
         FloatingActionButton fab_add = (FloatingActionButton) findViewById(R.id.add_recipe_fab);
@@ -76,10 +92,8 @@ public class MainActivity extends AppCompatActivity {
      * @return list of file names (Recipe Names)
      */
     public String[] getRecipeFiles() {
-        String path = Environment.getExternalStorageDirectory().toString()+"/"
-                + getString(R.string.top_app_directory);
 
-        File directory = new File(path);
+        File directory = new File(appFileDir);
         File[] files = directory.listFiles();
 
         if(files == null || files.length == 0){
@@ -105,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
     public void fab_add_onClick(View view) {
         Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
         intent.putExtra(RECIPE_EDIT,false);
+        intent.putExtra(APP_FILE_DIR, appFileDir);
         startActivity(intent);
     }
 
@@ -114,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(view.getContext(), ViewRecipeActivity.class);
         intent.putExtra(RECIPE_VIEW,recipeName);
+        intent.putExtra(APP_FILE_DIR, appFileDir);
         startActivity(intent);
     }
 
