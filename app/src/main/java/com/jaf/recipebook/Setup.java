@@ -45,8 +45,7 @@ public class Setup extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PER_WRITE_EXTERNAL_STORAGE);
         } else {
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            goToMain(STORAGE_EXTERNAL);
         }
     }
 
@@ -60,8 +59,8 @@ public class Setup extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     grantForWrite = 1;
                 } else {
-                    String errorMsg = "This app will not work without this permission. No data of yours will be collected.";
-                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+//                    String errorMsg = "This app will not work without this permission. No data of yours will be collected.";
+//                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
                     grantForWrite = -1;
                 }
             }

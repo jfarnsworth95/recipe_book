@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
-        storageOption = intent.getIntExtra(Setup.STORAGE_OPTION,0);
+        storageOption = intent.getIntExtra(Setup.STORAGE_OPTION,5);
         if(storageOption == STORAGE_EXTERNAL){
             appFileDir = Environment.getExternalStorageDirectory().getPath() + getString(R.string.top_app_directory);
         } else {
@@ -137,8 +137,8 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void fab_add_onClick(View view) {
-//        Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
-        Intent intent = new Intent(view.getContext(), TestViewer.class);
+        Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
+//        Intent intent = new Intent(view.getContext(), TestViewer.class);
         intent.putExtra(RECIPE_EDIT,false);
         intent.putExtra(APP_FILE_DIR, appFileDir);
         startActivity(intent);
@@ -191,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         }
+        Snackbar.make(view, "File to create\n" + f, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 
     @Override
