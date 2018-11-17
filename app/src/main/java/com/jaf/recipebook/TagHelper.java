@@ -1,5 +1,6 @@
 package com.jaf.recipebook;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.os.Environment;
 
@@ -29,9 +30,9 @@ public class TagHelper {
      * <p>Also used to return filtering of files</p>
      * @throws IOException
      */
-    public TagHelper(File appFileDir) throws IOException {
+    public TagHelper(File appFileDir, Context context) throws IOException {
         //Get tag file, create if it doesn't exist
-        tagFile = new File(appFileDir, Resources.getSystem().getString(R.string.tag_file_name));
+        tagFile = new File(appFileDir, context.getString(R.string.tag_file_name));
 
         //Create main app directory if it doesn't exist
         if (!tagFile.exists()) {

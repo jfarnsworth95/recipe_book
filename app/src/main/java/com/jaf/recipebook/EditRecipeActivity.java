@@ -38,7 +38,7 @@ public class EditRecipeActivity extends AppCompatActivity {
         appFileDir = intent.getStringExtra(MainActivity.APP_FILE_DIR);
 
         try {
-            tagHelper = new TagHelper(new File(appFileDir));
+            tagHelper = new TagHelper(new File(appFileDir),this);
         }catch (IOException ex){
             Snackbar.make(findViewById(android.R.id.content), "Failure interacting with the tag file",
                     Snackbar.LENGTH_LONG).setAction("Action", null).show();

@@ -1,6 +1,9 @@
 package com.jaf.recipebook;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
@@ -15,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             appFileDir = getFilesDir().getPath();
         }
-        displayPage();
     }
 
     @Override
@@ -77,13 +80,15 @@ public class MainActivity extends AppCompatActivity {
         } else {
             //Remove existing child view, replace with inflated layout
             View currentChildView = findViewById(R.id.recipe_list_view);
-            ViewGroup parent = (ViewGroup) currentChildView.getParent();
+            if(currentChildView != null) {
+                ViewGroup parent = (ViewGroup) currentChildView.getParent();
 
-            //Inflate recipe_list_empty layout template
-            LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-            View noRecipeView = inflater.inflate(R.layout.recipe_list_empty, parent, false);
-            parent.removeView(currentChildView);
-            parent.addView(noRecipeView);
+                //Inflate recipe_list_empty layout template
+                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+                View noRecipeView = inflater.inflate(R.layout.recipe_list_empty, parent, false);
+                parent.removeView(currentChildView);
+                parent.addView(noRecipeView);
+            }
         }
     }
 
@@ -94,20 +99,35 @@ public class MainActivity extends AppCompatActivity {
     public String[] getRecipeFiles() {
 
         File directory = new File(appFileDir);
-        File[] files = directory.listFiles();
+        File[] staticFilesList = directory.listFiles();
 
-        if(files == null || files.length == 0){
-            String[] none = {};
-            return none;
+        if(staticFilesList == null || staticFilesList.length == 0){
+            return new String[] {};
         }
 
-        //TODO Remove tags.csv and ingredients.csv from list
+        ArrayList<File> files = new ArrayList<File>();
+        //TODO: DO THIS BETTER. This was just a gap fix to determine the problem.
+        for(File file: staticFilesList){
+            if(!file.getName().contains(".csv")){ //Files this program didn't put there
+                files.remove(file);
+            }
+            else if(file.getName().equals(getString(R.string.tag_file_name))){ //Tag file
+                files.remove(file);
+            } else {
+                files.add(file);
+            }
+            //TODO Remove ingredients.csv from list
+        }
+
+        if(files.size() == 0){
+            return new String[] {};
+        }
 
 
         //Get String names and remove file extension from name
-        String[] fileNames = new String[files.length];
-        for(int i = 0; i < files.length; i ++){
-           fileNames[i] = files[i].getName().replace(".csv", "");
+        String[] fileNames = new String[files.size()];
+        for(int i = 0; i < files.size(); i ++){
+           fileNames[i] = files.get(i).getName().replace(".csv", "");
         }
         return fileNames;
     }
@@ -117,7 +137,8 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void fab_add_onClick(View view) {
-        Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
+//        Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
+        Intent intent = new Intent(view.getContext(), TestViewer.class);
         intent.putExtra(RECIPE_EDIT,false);
         intent.putExtra(APP_FILE_DIR, appFileDir);
         startActivity(intent);
@@ -178,3 +199,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
 }
+
+
+
+//AlertDialog.Builder builder;
+//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//    builder = new AlertDialog.Builder(context, android.R.style.Theme_Material_Dialog_Alert);
+//} else {
+//    builder = new AlertDialog.Builder(context);
+//}
+//builder.setTitle("Delete entry")
+//.setMessage("Are you sure you want to delete this entry?")
+//.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+//    public void onClick(DialogInterface dialog, int which) {
+//        // continue with delete
+//    }
+//})
+//.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+//    public void onClick(DialogInterface dialog, int which) {
+//        // do nothing
+//    }
+//})
+//.setIcon(android.R.drawable.ic_dialog_alert)
+//.show();
