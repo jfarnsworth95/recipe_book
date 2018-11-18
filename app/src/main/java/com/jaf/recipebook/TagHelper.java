@@ -1,28 +1,21 @@
 package com.jaf.recipebook;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.os.Environment;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class TagHelper {
 
-    File tagFile;
-    File mainDir;
-
-    final int STORAGE_INTERNAL = 0;
-    final int STORAGE_EXTERNAL = 1;
+    private File tagFile;
+    private File mainDir;
+    private final String TAG = "TagHelper";
 
     /**
      * All methods should be called only after the main recipe file has been saved
@@ -30,20 +23,27 @@ public class TagHelper {
      * <p>Also used to return filtering of files</p>
      * @throws IOException
      */
-    public TagHelper(File appFileDir, Context context) throws IOException {
+    protected TagHelper(File appFileDir, Context context) throws IOException {
         //Get tag file, create if it doesn't exist
-        tagFile = new File(appFileDir, context.getString(R.string.tag_file_name));
+        mainDir = appFileDir;
+        tagFile = new File(mainDir, context.getString(R.string.tag_file_name));
 
         //Create main app directory if it doesn't exist
         if (!tagFile.exists()) {
-            if (!tagFile.mkdir()) {
+            Log.i(TAG, "Tag file does not exist");
+            if (!tagFile.createNewFile()) {
                 tagFile = null;
+                Log.e(TAG, "Failed to create tag file");
                 throw new IOException("Couldn't make tag file");
+            } else {
+                Log.i(TAG, "Tag file created");
             }
+        } else {
+            Log.i(TAG, "Tag file exists");
         }
     }
 
-    public boolean addTags(String recipeTitle, ArrayList<String> tags){
+    protected boolean addTags(String recipeTitle, ArrayList<String> tags){
         //Create temp file for swapping
         File tmpFile = new File(mainDir, "tmp.txt");
 
@@ -73,16 +73,19 @@ public class TagHelper {
                 }
                 writer.write(st);
             }
+
             //Add recipe if missing
             if(!recipeExists){
-                writer.write(recipeTitle + ":");
+                Log.i(TAG, "[" + recipeTitle + "] has no entry in tag file, adding.");
+                String newEntry = recipeTitle + ":";
                 for(String tag: tags) {
-                    if (!st.contains(tag)) { //Check if tag already exists, if so do nothing
+                    if (!newEntry.contains(tag)) { //Check if tag already exists, if so do nothing
                         //Add to recipe
-                        writer.write("," + tag);
+                        newEntry = newEntry.concat("," + tag);
                     }
                 }
-                writer.write("\n");
+                Log.i(TAG, "Writing: " + newEntry);
+                writer.write(newEntry + "\n");
             }
             writer.close();
             br.close();
@@ -90,9 +93,15 @@ public class TagHelper {
             //swap tmp and original tag file
             br = new BufferedReader(new FileReader(tmpFile));
             writer = new FileWriter(tagFile,false);
+            Log.i(TAG, "Writing from tmp to tagfile");
             while ((st = br.readLine()) != null) {
+                //TODO Delete log statement after testing
+                Log.i(TAG, "Writing from tmp to tagfile: " + st);
                 writer.write(st);
             }
+
+            br.close();
+            writer.close();
 
             //delete tmp file
             return tmpFile.delete();
@@ -102,7 +111,7 @@ public class TagHelper {
         }
     }
 
-    public boolean removeTag(String recipeTitle, ArrayList<String> tags){
+    protected boolean removeTag(String recipeTitle, ArrayList<String> tags){
         //Create temp file for swapping
         File tmpFile = new File(mainDir, "tmp.txt");
 
@@ -128,12 +137,14 @@ public class TagHelper {
                         if (st.contains(tag)) {
                             //remove tags from recipe
                             st = st.replace("," + tag, "");
+                            recipeExists = true;
                         }
                     }
                 }
                 //check if any tags remain after removal
                 if(st.split(recipeTitle + ":,").length == 0){
                     //No tags, do not write line
+                    Log.i(TAG, "No tags remaining for [" + recipeTitle + "], omitting from file");
                 } else {
                     writer.write(st);
                 }
@@ -149,14 +160,15 @@ public class TagHelper {
             }
 
             //delete tmp file
-            return tmpFile.delete();
+            tmpFile.delete();
+            return recipeExists;
 
         } catch (IOException ex){
             return false;
         }
     }
 
-    public boolean removeRecipe(String recipeTitle){
+    protected boolean removeRecipe(String recipeTitle){
         //Create temp file for swapping
         File tmpFile = new File(mainDir, "tmp.txt");
 
@@ -175,6 +187,9 @@ public class TagHelper {
                 //Check if recipe exists in file
                 if(!st.contains(recipeTitle)){ //Do not write if recipe title in line
                     writer.write(st);
+                } else {
+                    Log.i(TAG, "Removing recipe from tag file via omission [" + recipeTitle + "]");
+                    recipeExists = true;
                 }
             }
             writer.close();
@@ -188,7 +203,8 @@ public class TagHelper {
             }
 
             //delete tmp file
-            return tmpFile.delete();
+            tmpFile.delete();
+            return recipeExists;
 
         } catch (IOException ex){
             return false;

@@ -22,6 +22,7 @@ public class EditRecipeActivity extends AppCompatActivity {
     final int FILE_CREATE_FAILED = 1;
     final int FILE_ALREADY_EXISTS = 2;
     final int FILE_WRITE_ERROR = -1;
+    final String TAG = "EditRecipeActivity";
 
     boolean isRecipeBeingEdited;
     String appFileDir;
@@ -80,29 +81,29 @@ public class EditRecipeActivity extends AppCompatActivity {
 
             switch (fileStatus){
                 case FILE_CREATED:
-                    Log.i("EditRecipeActivity","File (" + titleText + ".csv) successfully created");
+                    Log.i(TAG,"File (" + titleText + ".csv) successfully created");
                     finishedEditing();
                     break;
 
                 case FILE_CREATE_FAILED:
-                    Log.e("EditRecipeActivity","File (" + titleText + ".csv) failed to create");
+                    Log.e(TAG,"File (" + titleText + ".csv) failed to create");
                     finishedEditing();
                     break;
 
                 case FILE_ALREADY_EXISTS:
                     //Pass/Fail depends if file is being edited or not
                     if(isRecipeBeingEdited){
-                        Log.i("EditRecipeActivity","File (" + titleText + ".csv) successfully edited");
+                        Log.i(TAG,"File (" + titleText + ".csv) successfully edited");
                         finishedEditing();
                     } else {
-                        Log.e("EditRecipeActivity","File (" + titleText + ".csv) already exists");
+                        Log.e(TAG,"File (" + titleText + ".csv) already exists");
                         Snackbar.make(view, "A recipe with that title already exists", Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
                     }
                     break;
 
                 case FILE_WRITE_ERROR:
-                    Log.e("EditRecipeActivity","Encountered IO Error while writing to file(" + titleText + ".csv)");
+                    Log.e(TAG,"Encountered IO Error while writing to file(" + titleText + ".csv)");
                     Snackbar.make(view, "Sorry, we couldn't add/edit that file. Check your permissions.", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                     break;
@@ -138,18 +139,18 @@ public class EditRecipeActivity extends AppCompatActivity {
                 } else {
                     //Success
                     writeDataToFile(recipeFile, false, recipeIngredients, recipeDirections);
-//                    modifyRecipeTags(recipeTitle,tags);
+                    modifyRecipeTags(recipeTitle,tags);
                     return FILE_CREATED;
                 }
             } else {
                 if(isRecipeBeingEdited) {
                     writeDataToFile(recipeFile, true, recipeIngredients, recipeDirections);
-//                    modifyRecipeTags(recipeTitle,tags);
+                    modifyRecipeTags(recipeTitle,tags);
                 }
                 return FILE_ALREADY_EXISTS;
             }
         } catch (IOException ex){
-            Log.w("EditRecipeActivity",ex.getStackTrace().toString());
+            Log.w(TAG,"IO Error at line: " + Integer.toString(ex.getStackTrace()[0].getLineNumber()));
             return FILE_WRITE_ERROR;
         }
     }
@@ -209,8 +210,10 @@ public class EditRecipeActivity extends AppCompatActivity {
 
     public boolean modifyRecipeTags(String recipe, ArrayList<String> tags){
         if(isRecipeBeingEdited) {
+            Log.i(TAG, "Removing recipe [" + recipe + "] from tag file");
             boolean removeSuccess = tagHelper.removeRecipe(recipe);
             if(!removeSuccess){
+                Log.e(TAG, "Failed to remove recipe [" + recipe + "]");
                 return removeSuccess;
             }
         }
