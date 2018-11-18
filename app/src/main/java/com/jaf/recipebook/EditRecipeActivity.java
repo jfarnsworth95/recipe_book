@@ -43,6 +43,8 @@ public class EditRecipeActivity extends AppCompatActivity {
             Snackbar.make(findViewById(android.R.id.content), "Failure interacting with the tag file",
                     Snackbar.LENGTH_LONG).setAction("Action", null).show();
         }
+        Snackbar.make(findViewById(android.R.id.content), "Edit: " + isRecipeBeingEdited,
+                Snackbar.LENGTH_LONG).setAction("Action", null).show();
     }
 
     /**
@@ -136,17 +138,18 @@ public class EditRecipeActivity extends AppCompatActivity {
                 } else {
                     //Success
                     writeDataToFile(recipeFile, false, recipeIngredients, recipeDirections);
-                    modifyRecipeTags(recipeTitle,tags);
+//                    modifyRecipeTags(recipeTitle,tags);
                     return FILE_CREATED;
                 }
             } else {
                 if(isRecipeBeingEdited) {
                     writeDataToFile(recipeFile, true, recipeIngredients, recipeDirections);
-                    modifyRecipeTags(recipeTitle,tags);
+//                    modifyRecipeTags(recipeTitle,tags);
                 }
                 return FILE_ALREADY_EXISTS;
             }
         } catch (IOException ex){
+            Log.w("EditRecipeActivity",ex.getStackTrace().toString());
             return FILE_WRITE_ERROR;
         }
     }

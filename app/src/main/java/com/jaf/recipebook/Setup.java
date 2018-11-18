@@ -18,8 +18,6 @@ import java.io.File;
 public class Setup extends AppCompatActivity {
 
     public final static String STORAGE_OPTION = "com.jaf.recipebook.STORAGE_OPTION";
-    final int STORAGE_INTERNAL = 0;
-    final int STORAGE_EXTERNAL = 1;
     final int PER_WRITE_EXTERNAL_STORAGE = 1;
     int grantForWrite = 0;
 
@@ -45,7 +43,7 @@ public class Setup extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PER_WRITE_EXTERNAL_STORAGE);
         } else {
-            goToMain(STORAGE_EXTERNAL);
+            goToMain();
         }
     }
 
@@ -68,15 +66,14 @@ public class Setup extends AppCompatActivity {
         }
         if(grantForWrite == 1){
             //checkExternalDirectory();
-            goToMain(STORAGE_EXTERNAL);
+            goToMain();
         } else if(grantForWrite == -1){
-            goToMain(STORAGE_INTERNAL);
+            goToMain();
         }
     }
 
-    public void goToMain(int storageOption){
+    public void goToMain(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(STORAGE_OPTION,storageOption);
         startActivity(intent);
         finish();
     }

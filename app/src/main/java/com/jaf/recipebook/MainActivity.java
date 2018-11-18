@@ -1,14 +1,18 @@
 package com.jaf.recipebook;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
@@ -37,13 +41,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED){
+            storageOption = STORAGE_INTERNAL;
+        } else {
+            storageOption = STORAGE_EXTERNAL;
+        }
+
         Intent intent = getIntent();
-        storageOption = intent.getIntExtra(Setup.STORAGE_OPTION,5);
         if(storageOption == STORAGE_EXTERNAL){
-            appFileDir = Environment.getExternalStorageDirectory().getPath() + getString(R.string.top_app_directory);
+            appFileDir = Environment.getExternalStorageDirectory().getPath() + "/" + getString(R.string.top_app_directory);
+            Log.i("MainActivity", "EXTERNAL USED");
         } else {
             appFileDir = getFilesDir().getPath();
+            Log.i("MainActivity", "INTERNAL USED");
         }
+        displayPage();
     }
 
     @Override
@@ -54,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void displayPage() {
+
         if(storageOption == STORAGE_EXTERNAL) {
             checkExternalDirectory();
         }
@@ -69,6 +83,10 @@ public class MainActivity extends AppCompatActivity {
 
         String[] recipeTitles = getRecipeFiles();
         Arrays.sort(recipeTitles);
+        Log.i("MainActivity", "Files under directory (" + appFileDir + "):");
+        for(String title: recipeTitles){
+            Log.i("MainActivity", "File name: "+ title);
+        }
 
         if (recipeTitles == null || recipeTitles.length != 0) {
             //Get ListView layout for inflating in data
@@ -191,8 +209,6 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         }
-        Snackbar.make(view, "File to create\n" + f, Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
     }
 
     @Override
