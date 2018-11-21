@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">RecipeBook</string>
-    <string name="action_settings">Settings</string>
     <string name="no_recipe_text">Looks like you don\'t have any recipes, you should add some!</string>
     <string name="recipe_edit_button">Edit</string>
     <string name="top_app_directory">RecipeBook</string>
@@ -17,4 +16,8 @@
 
     <string name="file_separator">#/\**/\#</string>
     <string name="tag_file_name">tags.txt</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
 </resources>

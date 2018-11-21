@@ -1,9 +1,17 @@
 package com.jaf.recipebook;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Environment;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -14,6 +22,10 @@ import java.io.IOException;
 public class ViewRecipeActivity extends AppCompatActivity {
 
     public String appDirectory;
+    private String recipeTitle;
+    public final static String RECIPE_EDIT = MainActivity.RECIPE_EDIT;
+    public final static String APP_FILE_DIR = MainActivity.APP_FILE_DIR;
+    public final static String RECIPE_TITLE = "com.jaf.recipebook.RECIPE_TITLE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +33,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_recipe);
 
         Intent intent = getIntent();
-        String recipeTitle = intent.getStringExtra(MainActivity.RECIPE_VIEW);
+        this.recipeTitle = intent.getStringExtra(MainActivity.RECIPE_VIEW);
         appDirectory = intent.getStringExtra(MainActivity.APP_FILE_DIR);
         File recipeFile = new File(appDirectory, recipeTitle + ".csv");
 
@@ -64,5 +76,50 @@ public class ViewRecipeActivity extends AppCompatActivity {
         } catch (IOException ex){
             //TODO what do if file IO Exception
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_view, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.menu_item_edit) {
+            goToEditRecipe();
+            finishActivity(0);
+            return true;
+        } else if (id == R.id.menu_item_delete) {
+            View view = findViewById(android.R.id.content);
+            Snackbar.make(view, "You clicked delete. Shame that doesn't do anything yet, huh?", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            return true;
+        } else {
+            View view = findViewById(android.R.id.content);
+            Snackbar.make(view, "I'm going to be perfectly honest here. I have no idea what you just pressed.", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void goToEditRecipe(){
+        Intent intent = new Intent(findViewById(android.R.id.content).getContext(),
+                EditRecipeActivity.class);
+        intent.putExtra(RECIPE_EDIT,true);
+        intent.putExtra(RECIPE_TITLE, recipeTitle);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED){
+            intent.putExtra(APP_FILE_DIR,Environment.getExternalStorageDirectory().getPath()
+                    + "/" + getString(R.string.top_app_directory));
+        } else {
+            intent.putExtra(APP_FILE_DIR, getFilesDir().getPath());
+        }
+
+        startActivity(intent);
     }
 }

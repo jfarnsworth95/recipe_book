@@ -10,6 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.security.auth.login.LoginException;
+
 
 public class TagHelper {
 
@@ -38,12 +40,12 @@ public class TagHelper {
             } else {
                 Log.i(TAG, "Tag file created");
             }
-        } else {
-            Log.i(TAG, "Tag file exists");
         }
     }
 
     protected boolean addTags(String recipeTitle, ArrayList<String> tags){
+        Log.i(TAG, "Adding tags for: " + recipeTitle);
+
         //Create temp file for swapping
         File tmpFile = new File(mainDir, "tmp.txt");
 
@@ -93,10 +95,9 @@ public class TagHelper {
             //swap tmp and original tag file
             br = new BufferedReader(new FileReader(tmpFile));
             writer = new FileWriter(tagFile,false);
-            Log.i(TAG, "Writing from tmp to tagfile");
             while ((st = br.readLine()) != null) {
                 //TODO Delete log statement after testing
-                Log.i(TAG, "Writing from tmp to tagfile: " + st);
+                Log.i(TAG, "Writing from tmp to tagfile {" + st + "}");
                 writer.write(st);
             }
 
@@ -107,6 +108,7 @@ public class TagHelper {
             return tmpFile.delete();
 
         } catch (IOException ex){
+            Log.e(TAG, "IO Error while adding tags for [" + recipeTitle + "]");
             return false;
         }
     }
@@ -159,6 +161,9 @@ public class TagHelper {
                 writer.write(st);
             }
 
+            writer.close();
+            br.close();
+
             //delete tmp file
             tmpFile.delete();
             return recipeExists;
@@ -202,6 +207,9 @@ public class TagHelper {
                 writer.write(st);
             }
 
+            writer.close();
+            br.close();
+
             //delete tmp file
             tmpFile.delete();
             return recipeExists;
@@ -232,6 +240,38 @@ public class TagHelper {
             br.close();
 
             return matchingRecipes;
+
+        } catch (IOException ex){
+            return new ArrayList<String>();
+        }
+    }
+
+    protected ArrayList<String> getTagsForRecipe(String recipeTitle){
+        //Set to lower case for easy matching
+        recipeTitle = recipeTitle.toLowerCase();
+
+        ArrayList<String> tags = new ArrayList<String>();
+
+        //Check tag file line by line, save to list any recipe that has tag
+        try {
+
+            BufferedReader br = new BufferedReader(new FileReader(tagFile));
+            String st;
+
+            while ((st = br.readLine()) != null) {
+                //Check if recipe exists in file
+                if(st.contains(recipeTitle + ":")){ //Do not write if recipe title in line
+                    String tagsAsString = st.split(":")[1];
+                    for(String tag: tagsAsString.split(",")){
+                        if(!tag.equals("")) {
+                            tags.add(tag);
+                        }
+                    }
+                }
+            }
+            br.close();
+
+            return tags;
 
         } catch (IOException ex){
             return new ArrayList<String>();

@@ -83,10 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
         String[] recipeTitles = getRecipeFiles();
         Arrays.sort(recipeTitles);
-        Log.i("MainActivity", "Files under directory (" + appFileDir + "):");
-        for(String title: recipeTitles){
-            Log.i("MainActivity", "File name: "+ title);
-        }
+        Log.i("MainActivity", "Files under directory [" + appFileDir + "]:");
 
         if (recipeTitles == null || recipeTitles.length != 0) {
             //Get ListView layout for inflating in data
@@ -158,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(view.getContext(), EditRecipeActivity.class);
 //        Intent intent = new Intent(view.getContext(), TestViewer.class);
         intent.putExtra(RECIPE_EDIT,false);
-        intent.putExtra(APP_FILE_DIR, appFileDir);
         startActivity(intent);
     }
 

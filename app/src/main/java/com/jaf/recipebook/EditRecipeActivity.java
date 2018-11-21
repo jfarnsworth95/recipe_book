@@ -1,9 +1,12 @@
 package com.jaf.recipebook;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,7 +14,9 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +41,13 @@ public class EditRecipeActivity extends AppCompatActivity {
         // Get the Intent that started this activity and extract the string
         Intent intent = getIntent();
         isRecipeBeingEdited = intent.getBooleanExtra(MainActivity.RECIPE_EDIT,true);
-        appFileDir = intent.getStringExtra(MainActivity.APP_FILE_DIR);
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED){
+            appFileDir = getFilesDir().getPath();
+        } else {
+            appFileDir = Environment.getExternalStorageDirectory().getPath() + "/" + getString(R.string.top_app_directory);
+        }
 
         try {
             tagHelper = new TagHelper(new File(appFileDir),this);
@@ -44,8 +55,60 @@ public class EditRecipeActivity extends AppCompatActivity {
             Snackbar.make(findViewById(android.R.id.content), "Failure interacting with the tag file",
                     Snackbar.LENGTH_LONG).setAction("Action", null).show();
         }
-        Snackbar.make(findViewById(android.R.id.content), "Edit: " + isRecipeBeingEdited,
-                Snackbar.LENGTH_LONG).setAction("Action", null).show();
+
+        //Set Text if recipe already exists
+        if(isRecipeBeingEdited){
+            setEditFieldText(intent.getStringExtra(ViewRecipeActivity.RECIPE_TITLE));
+        }
+    }
+
+    private void setEditFieldText(String recipeTitle) {
+        //TODO You are creating an intent to pass in recipe name, then adding the filling in of edit fields
+
+        //Get fields
+        EditText titleEditText = (EditText) findViewById(R.id.edit_text_recipe_title);
+        EditText ingredientsEditText = (EditText) findViewById(R.id.editText_recipe_ingredients);
+        EditText directionsEditText = (EditText) findViewById(R.id.editText_recipe_directions);
+        EditText tagsEditText = (EditText) findViewById(R.id.editText_recipe_tags);
+
+        //Get Ingredients and Directions from file
+        String ingredients = "";
+        String directions = "";
+        try {
+            File recipeFile = new File(appFileDir, recipeTitle + ".csv");
+            BufferedReader br = new BufferedReader(new FileReader(recipeFile));
+            String st;
+
+            while (!(st = br.readLine()).equals(getString(R.string.file_separator))){
+                ingredients = ingredients.concat(st + "\n");
+            }
+            ingredients = ingredients.replaceAll("\n$","");
+
+            while((st = br.readLine()) != null){
+                directions = directions.concat(st + "\n");
+            }
+            directions = directions.replaceAll("\n$","");
+
+        } catch (IOException ex){
+            Log.e(TAG, "Error attempting to read file [" + recipeTitle + ".csv]");
+            finishActivity(-1);
+        }
+
+        //Get Tags from tag file
+        ArrayList<String> tagList = tagHelper.getTagsForRecipe(recipeTitle);
+        String tags = "";
+        for (String tag: tagList){
+            tags = tags.concat(tag);
+            if(tagList.indexOf(tag) != tagList.size() -1){
+                tags = tags.concat(", ");
+            }
+        }
+
+        //Set values
+        titleEditText.setText(recipeTitle);
+        ingredientsEditText.setText(ingredients);
+        directionsEditText.setText(directions);
+        tagsEditText.setText(tags);
     }
 
     /**
@@ -68,10 +131,13 @@ public class EditRecipeActivity extends AppCompatActivity {
             String directionsText = directionsEditText.getText().toString();
             String tagsText = tagsEditText.getText().toString();
 
+            Log.i(TAG, "Tag field: " + tagsText);
             String[] tagList = tagsText.split(",");
             ArrayList<String> tags = new ArrayList<String>();
             for(String tag: tagList){
-                tags.add(tag.replaceAll("^\\s*",""));
+                String temp = tag.replaceAll("^\\s*","");
+                Log.i(TAG, "Tag to add: " + temp);
+                tags.add(temp);
             }
 
             int fileStatus;
@@ -121,9 +187,6 @@ public class EditRecipeActivity extends AppCompatActivity {
      * @return 0 if success, 1 if failure, 2 if file already exists
      */
     public int createRecipeFile(String recipeTitle, String recipeIngredients, String recipeDirections, ArrayList<String> tags){
-        //Get file resources
-        View view = findViewById(android.R.id.content);
-
         File recipeFile = new File(appFileDir, recipeTitle + ".csv");
 
         // initiate media scan and put the new things into the path array to
@@ -165,7 +228,7 @@ public class EditRecipeActivity extends AppCompatActivity {
      */
     public void writeDataToFile(File file, boolean shouldOverwriteFile,
                                 String ingredients, String directions) throws IOException {
-        FileWriter writer = new FileWriter(file.getPath(),shouldOverwriteFile);
+        FileWriter writer = new FileWriter(file.getPath(),!shouldOverwriteFile);
         writer.write(ingredients + "\n");
         writer.write(getString(R.string.file_separator)+ "\n");
         writer.write(directions);
@@ -211,11 +274,7 @@ public class EditRecipeActivity extends AppCompatActivity {
     public boolean modifyRecipeTags(String recipe, ArrayList<String> tags){
         if(isRecipeBeingEdited) {
             Log.i(TAG, "Removing recipe [" + recipe + "] from tag file");
-            boolean removeSuccess = tagHelper.removeRecipe(recipe);
-            if(!removeSuccess){
-                Log.e(TAG, "Failed to remove recipe [" + recipe + "]");
-                return removeSuccess;
-            }
+            tagHelper.removeRecipe(recipe);
         }
         return tagHelper.addTags(recipe,tags);
     }
