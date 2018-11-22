@@ -23,6 +23,8 @@ public class ViewRecipeActivity extends AppCompatActivity {
 
     public String appDirectory;
     private String recipeTitle;
+    private final String TAG = "ViewRecipeActivity";
+    File recipeFile;
     public final static String RECIPE_EDIT = MainActivity.RECIPE_EDIT;
     public final static String APP_FILE_DIR = MainActivity.APP_FILE_DIR;
     public final static String RECIPE_TITLE = "com.jaf.recipebook.RECIPE_TITLE";
@@ -35,7 +37,7 @@ public class ViewRecipeActivity extends AppCompatActivity {
         Intent intent = getIntent();
         this.recipeTitle = intent.getStringExtra(MainActivity.RECIPE_VIEW);
         appDirectory = intent.getStringExtra(MainActivity.APP_FILE_DIR);
-        File recipeFile = new File(appDirectory, recipeTitle + ".csv");
+        recipeFile = new File(appDirectory, recipeTitle + ".csv");
 
         try {
             //Get ingredients and directions from file
@@ -94,9 +96,8 @@ public class ViewRecipeActivity extends AppCompatActivity {
             finishActivity(0);
             return true;
         } else if (id == R.id.menu_item_delete) {
-            View view = findViewById(android.R.id.content);
-            Snackbar.make(view, "You clicked delete. Shame that doesn't do anything yet, huh?", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+            deleteRecipe();
+            finish();
             return true;
         } else {
             View view = findViewById(android.R.id.content);
@@ -106,6 +107,47 @@ public class ViewRecipeActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Removes recipe file and clears tags from tag file
+     */
+    private void deleteRecipe() {
+
+        //Remove recipe file
+        Log.i(TAG, "Deleting recipe: " + recipeTitle);
+        boolean deleted = recipeFile.delete();
+
+        //Determine directory to use
+        String appFileDir;
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED){
+            appFileDir = getFilesDir().getPath();
+        } else {
+            appFileDir = Environment.getExternalStorageDirectory().getPath() + "/" + getString(R.string.top_app_directory);
+        }
+
+        //Remove tag file entry for recipe
+        TagHelper tagHelper;
+        try {
+            tagHelper = new TagHelper(new File(appFileDir),this);
+        }catch (IOException ex){
+            Snackbar.make(findViewById(android.R.id.content), "Failure interacting with the tag file",
+                    Snackbar.LENGTH_LONG).setAction("Action", null).show();
+            Log.e(TAG, "Trouble with tag file when trying to delete: " + recipeTitle);
+            return;
+        }
+        tagHelper.removeRecipe(recipeTitle);
+
+        //Log details of attempt
+        if(deleted){
+            Log.i(TAG, recipeFile.getName() + " deleted");
+        } else {
+            Log.e(TAG, "Failure attempting to delete: " + recipeFile.getName());
+        }
+    }
+
+    /**
+     * Go to edit view, pass in File Directory used, recipe title, and that an edit action will occur
+     */
     private void goToEditRecipe(){
         Intent intent = new Intent(findViewById(android.R.id.content).getContext(),
                 EditRecipeActivity.class);
