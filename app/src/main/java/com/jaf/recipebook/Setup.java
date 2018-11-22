@@ -37,9 +37,10 @@ public class Setup extends AppCompatActivity {
 
     private void getPermissions(){
 
+        DirectoryHelper dh = new DirectoryHelper(this);
+        int storageAllowed = dh.getStorageOption();
         //Check & Request access (if not already granted) for individual permissions
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (storageAllowed == dh.STORAGE_INTERNAL) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PER_WRITE_EXTERNAL_STORAGE);
         } else {

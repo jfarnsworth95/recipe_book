@@ -31,7 +31,9 @@ public class EditRecipeActivity extends AppCompatActivity {
 
     boolean isRecipeBeingEdited;
     String appFileDir;
+
     TagHelper tagHelper;
+    DirectoryHelper dh = new DirectoryHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,12 +44,7 @@ public class EditRecipeActivity extends AppCompatActivity {
         Intent intent = getIntent();
         isRecipeBeingEdited = intent.getBooleanExtra(MainActivity.RECIPE_EDIT,true);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-            appFileDir = getFilesDir().getPath();
-        } else {
-            appFileDir = Environment.getExternalStorageDirectory().getPath() + "/" + getString(R.string.top_app_directory);
-        }
+        appFileDir = dh.getAppDirPath();
 
         try {
             tagHelper = new TagHelper(new File(appFileDir),this);
@@ -62,8 +59,11 @@ public class EditRecipeActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * If editing, use this to set all fields to current info for recipe
+     * @param recipeTitle recipe to gather info from
+     */
     private void setEditFieldText(String recipeTitle) {
-        //TODO You are creating an intent to pass in recipe name, then adding the filling in of edit fields
 
         //Get fields
         EditText titleEditText = (EditText) findViewById(R.id.edit_text_recipe_title);
@@ -115,8 +115,6 @@ public class EditRecipeActivity extends AppCompatActivity {
      * Save Button listener
      */
     public void onSaveBtnClicked(View view){
-        //TODO Add Tag file and ingredient file update
-            //TODO check for removal of ingredients in edit and remove appropriately
 
         //Check if fields are filled out
         if(areFieldsFilled()){
@@ -131,20 +129,20 @@ public class EditRecipeActivity extends AppCompatActivity {
             String directionsText = directionsEditText.getText().toString();
             String tagsText = tagsEditText.getText().toString();
 
-            Log.i(TAG, "Tag field: " + tagsText);
+            Log.i(TAG, "\tTags: " + tagsText);
+
+            //Get Tag field info and clean
             String[] tagList = tagsText.split(",");
             ArrayList<String> tags = new ArrayList<String>();
             for(String tag: tagList){
+                Log.i(TAG, "Tag being added to list: " + tag);
+                //remove leading whitespace
                 String temp = tag.replaceAll("^\\s*","");
-                Log.i(TAG, "Tag to add: " + temp);
                 tags.add(temp);
             }
 
-            int fileStatus;
-
-            fileStatus = createRecipeFile(titleText, ingredientsText, directionsText, tags);
-
-
+            //Create/Modify file
+            int fileStatus = createRecipeFile(titleText, ingredientsText, directionsText, tags);
             switch (fileStatus){
                 case FILE_CREATED:
                     Log.i(TAG,"File (" + titleText + ".csv) successfully created");
@@ -176,6 +174,7 @@ public class EditRecipeActivity extends AppCompatActivity {
 
             }
         } else {
+            //User didn't fill in all necessary fields
             Snackbar.make(view, "Fill out Title, Ingredients, and Directions to save", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
@@ -202,13 +201,17 @@ public class EditRecipeActivity extends AppCompatActivity {
                 } else {
                     //Success
                     writeDataToFile(recipeFile, false, recipeIngredients, recipeDirections);
-                    modifyRecipeTags(recipeTitle,tags);
+                    if(!modifyRecipeTags(recipeTitle,tags)){
+                        Log.e(TAG, "Temp file not deleted");
+                    }
                     return FILE_CREATED;
                 }
             } else {
                 if(isRecipeBeingEdited) {
                     writeDataToFile(recipeFile, true, recipeIngredients, recipeDirections);
-                    modifyRecipeTags(recipeTitle,tags);
+                    if(!modifyRecipeTags(recipeTitle,tags)){
+                        Log.e(TAG, "Temp file not deleted");
+                    }
                 }
                 return FILE_ALREADY_EXISTS;
             }
@@ -224,13 +227,13 @@ public class EditRecipeActivity extends AppCompatActivity {
      * @param shouldOverwriteFile true if file should be overwritten, otherwise will append
      * @param ingredients ingredients used in recipe
      * @param directions directions to make recipe
-     * @throws IOException
+     * @throws IOException Couldn't write to recipe file
      */
     public void writeDataToFile(File file, boolean shouldOverwriteFile,
                                 String ingredients, String directions) throws IOException {
         FileWriter writer = new FileWriter(file.getPath(),!shouldOverwriteFile);
         writer.write(ingredients + "\n");
-        writer.write(getString(R.string.file_separator)+ "\n");
+        writer.write(getString(R.string.file_separator)+ "\n"); //File separator between ingredients and directions
         writer.write(directions);
         writer.close();
     }
@@ -264,6 +267,9 @@ public class EditRecipeActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Move back to main activity, remove this activity from the stack
+     */
     public void finishedEditing(){
         Intent quitEditIntent = new Intent(this, MainActivity.class);
         quitEditIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -271,6 +277,12 @@ public class EditRecipeActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Add/modify tag file with new tags for recipe
+     * @param recipe name of recipe to make changes to
+     * @param tags tags to add in
+     * @return was temporary file deleted?
+     */
     public boolean modifyRecipeTags(String recipe, ArrayList<String> tags){
         if(isRecipeBeingEdited) {
             Log.i(TAG, "Removing recipe [" + recipe + "] from tag file");

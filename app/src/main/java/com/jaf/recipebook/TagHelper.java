@@ -10,8 +10,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.security.auth.login.LoginException;
-
 
 public class TagHelper {
 
@@ -23,7 +21,9 @@ public class TagHelper {
      * All methods should be called only after the main recipe file has been saved
      * <p>Helper class for modifying the tag file used for sorting on the main activity</p>
      * <p>Also used to return filtering of files</p>
-     * @throws IOException
+     * <p>Tag file format:</p>
+     * <p>RecipeName:,tag0,tag1,tag2\n</p>
+     * @throws IOException Tag File read/write failed
      */
     protected TagHelper(File appFileDir, Context context) throws IOException {
         //Get tag file, create if it doesn't exist
@@ -43,6 +43,12 @@ public class TagHelper {
         }
     }
 
+    /**
+     * Add tags for recipe to file
+     * @param recipeTitle recipe to add to
+     * @param tags tags to add with respect to recipe
+     * @return Temp file successfully deleted
+     */
     protected boolean addTags(String recipeTitle, ArrayList<String> tags){
         Log.i(TAG, "Adding tags for: " + recipeTitle);
 
@@ -55,40 +61,33 @@ public class TagHelper {
             tags.set(i,tags.get(i).toLowerCase());
         }
 
+        for(String tag: tags){
+            Log.i(TAG, "\tTags in list: " + tag);
+        }
+
         try {
+            //Write to temporary file to ensure no data loss
             FileWriter writer = new FileWriter(tmpFile.getPath(),false);
 
             BufferedReader br = new BufferedReader(new FileReader(tagFile));
-            boolean recipeExists = false;
             String st;
 
             while ((st = br.readLine()) != null) {
-                //Check if recipe exists in file
-                if(st.contains(recipeTitle)){
-                    recipeExists = true;
-                    for(String tag: tags) {
-                        if (!st.contains(tag)) { //Check if tag already exists, if so do nothing
-                            //Add to recipe
-                            st = st.replace("\n", "," + tag + "\n");
-                        }
-                    }
-                }
                 writer.write(st);
             }
 
-            //Add recipe if missing
-            if(!recipeExists){
-                Log.i(TAG, "[" + recipeTitle + "] has no entry in tag file, adding.");
-                String newEntry = recipeTitle + ":";
-                for(String tag: tags) {
-                    if (!newEntry.contains(tag)) { //Check if tag already exists, if so do nothing
-                        //Add to recipe
-                        newEntry = newEntry.concat("," + tag);
-                    }
+            //Add recipe in
+            String newEntry = recipeTitle + ":";
+            for(String tag: tags) {
+                if (!newEntry.contains("," + tag)) { //Check if tag already exists, if so do nothing
+                    //Add to recipe
+                    newEntry = newEntry.concat("," + tag);
+                    Log.i(TAG, "recipe tag entry so far: " + newEntry);
                 }
-                Log.i(TAG, "Writing: " + newEntry);
-                writer.write(newEntry + "\n");
             }
+            Log.i(TAG, "Writing: " + newEntry);
+            writer.write(newEntry + "\n");
+
             writer.close();
             br.close();
 
@@ -101,6 +100,7 @@ public class TagHelper {
                 writer.write(st);
             }
 
+            //Close to save
             br.close();
             writer.close();
 
@@ -113,66 +113,11 @@ public class TagHelper {
         }
     }
 
-    protected boolean removeTag(String recipeTitle, ArrayList<String> tags){
-        //Create temp file for swapping
-        File tmpFile = new File(mainDir, "tmp.txt");
-
-        //Set to lower case for easy matching
-        recipeTitle = recipeTitle.toLowerCase();
-        for(int i = 0; i < tags.size(); i ++){
-            tags.set(i,tags.get(i).toLowerCase());
-        }
-
-        //Check if recipe exists in file
-        try {
-            FileWriter writer = new FileWriter(tmpFile.getPath(),false);
-
-            BufferedReader br = new BufferedReader(new FileReader(tagFile));
-            boolean recipeExists = false;
-            String st;
-
-            while ((st = br.readLine()) != null) {
-                //Check if recipe exists in file
-                if(st.contains(recipeTitle)){
-                    recipeExists = true;
-                    for(String tag: tags) {
-                        if (st.contains(tag)) {
-                            //remove tags from recipe
-                            st = st.replace("," + tag, "");
-                            recipeExists = true;
-                        }
-                    }
-                }
-                //check if any tags remain after removal
-                if(st.split(recipeTitle + ":,").length == 0){
-                    //No tags, do not write line
-                    Log.i(TAG, "No tags remaining for [" + recipeTitle + "], omitting from file");
-                } else {
-                    writer.write(st);
-                }
-            }
-            writer.close();
-            br.close();
-
-            //swap tmp and original tag file
-            br = new BufferedReader(new FileReader(tmpFile));
-            writer = new FileWriter(tagFile,false);
-            while ((st = br.readLine()) != null) {
-                writer.write(st);
-            }
-
-            writer.close();
-            br.close();
-
-            //delete tmp file
-            tmpFile.delete();
-            return recipeExists;
-
-        } catch (IOException ex){
-            return false;
-        }
-    }
-
+    /**
+     * Remove recipe and it's tags from the tag file. Should happen along with recipe file deletion
+     * @param recipeTitle recipe to delete
+     * @return Temp file successfully deleted
+     */
     protected boolean removeRecipe(String recipeTitle){
         //Create temp file for swapping
         File tmpFile = new File(mainDir, "tmp.txt");
@@ -211,14 +156,18 @@ public class TagHelper {
             br.close();
 
             //delete tmp file
-            tmpFile.delete();
-            return recipeExists;
+            return tmpFile.delete();
 
         } catch (IOException ex){
             return false;
         }
     }
 
+    /**
+     * Used by filter to find matching recipes for the query
+     * @param tag Partial match to check
+     * @return List of matching recipes
+     */
     public ArrayList<String> getRecipesWithTag(String tag){
         //Set to lower case for easy matching
         tag = tag.toLowerCase();
@@ -246,6 +195,11 @@ public class TagHelper {
         }
     }
 
+    /**
+     * Get tags for a given recipe
+     * @param recipeTitle recipe to get tags from
+     * @return list of tags from recipe
+     */
     protected ArrayList<String> getTagsForRecipe(String recipeTitle){
         //Set to lower case for easy matching
         recipeTitle = recipeTitle.toLowerCase();
@@ -277,4 +231,65 @@ public class TagHelper {
             return new ArrayList<String>();
         }
     }
+
+    //No point in having this class if I just remove the line and re-add it anyway.
+//    protected boolean removeTag(String recipeTitle, ArrayList<String> tags){
+//        //Create temp file for swapping
+//        File tmpFile = new File(mainDir, "tmp.txt");
+//
+//        //Set to lower case for easy matching
+//        recipeTitle = recipeTitle.toLowerCase();
+//        for(int i = 0; i < tags.size(); i ++){
+//            tags.set(i,tags.get(i).toLowerCase());
+//        }
+//
+//        //Check if recipe exists in file
+//        try {
+//            FileWriter writer = new FileWriter(tmpFile.getPath(),false);
+//
+//            BufferedReader br = new BufferedReader(new FileReader(tagFile));
+//            boolean recipeExists = false;
+//            String st;
+//
+//            while ((st = br.readLine()) != null) {
+//                //Check if recipe exists in file
+//                if(st.contains(recipeTitle)){
+//                    recipeExists = true;
+//                    for(String tag: tags) {
+//                        if (st.contains(tag)) {
+//                            //remove tags from recipe
+//                            st = st.replace("," + tag, "");
+//                            recipeExists = true;
+//                        }
+//                    }
+//                }
+//                //check if any tags remain after removal
+//                if(st.split(recipeTitle + ":,").length == 0){
+//                    //No tags, do not write line
+//                    Log.i(TAG, "No tags remaining for [" + recipeTitle + "], omitting from file");
+//                } else {
+//                    writer.write(st);
+//                }
+//            }
+//            writer.close();
+//            br.close();
+//
+//            //swap tmp and original tag file
+//            br = new BufferedReader(new FileReader(tmpFile));
+//            writer = new FileWriter(tagFile,false);
+//            while ((st = br.readLine()) != null) {
+//                writer.write(st);
+//            }
+//
+//            writer.close();
+//            br.close();
+//
+//            //delete tmp file
+//            tmpFile.delete();
+//            return recipeExists;
+//
+//        } catch (IOException ex){
+//            return false;
+//        }
+//    }
 }

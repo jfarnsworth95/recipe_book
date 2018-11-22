@@ -21,23 +21,26 @@ import java.io.IOException;
 
 public class ViewRecipeActivity extends AppCompatActivity {
 
-    public String appDirectory;
     private String recipeTitle;
-    private final String TAG = "ViewRecipeActivity";
     File recipeFile;
+
+    private final String TAG = "ViewRecipeActivity";
+
     public final static String RECIPE_EDIT = MainActivity.RECIPE_EDIT;
     public final static String APP_FILE_DIR = MainActivity.APP_FILE_DIR;
     public final static String RECIPE_TITLE = "com.jaf.recipebook.RECIPE_TITLE";
+
+    DirectoryHelper dh = new DirectoryHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_recipe);
 
+        //Grab info needed for setup
         Intent intent = getIntent();
         this.recipeTitle = intent.getStringExtra(MainActivity.RECIPE_VIEW);
-        appDirectory = intent.getStringExtra(MainActivity.APP_FILE_DIR);
-        recipeFile = new File(appDirectory, recipeTitle + ".csv");
+        recipeFile = new File(dh.getAppDirPath(), recipeTitle + ".csv");
 
         try {
             //Get ingredients and directions from file
@@ -65,41 +68,57 @@ public class ViewRecipeActivity extends AppCompatActivity {
                 recipeDirections = recipeDirections.concat(st + "\n");
             }
 
-            //Apply data to layout
             //Get text views
             TextView title_view = findViewById(R.id.view_recipe_title);
             TextView ingredients_view = findViewById(R.id.view_ingredient_list);
             TextView directions_view = findViewById(R.id.view_direction_text);
+
             //Set text
             title_view.setText(recipeTitle);
             ingredients_view.setText(recipeIngredients);
             directions_view.setText(recipeDirections);
 
         } catch (IOException ex){
-            //TODO what do if file IO Exception
+            Log.e(TAG, "File read issue for: " + recipeTitle);
+            finish();
         }
     }
 
+    /**
+     * Literally just creates the menu. Kinda in the name, as you might have noticed
+     * @param menu The menu. Again, doesn't take a rocket scientist to figure that one out.
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_view, menu);
         return true;
     }
 
+    /**
+     * Determine action to take on item selection, options include:
+     * <p>Delete</p>
+     * <p>Edit</p>
+     * @param item Item selected by user from menu
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        //Determine option selected
         if (id == R.id.menu_item_edit) {
             goToEditRecipe();
-            finishActivity(0);
+            finishActivity(0); //Removes activity from stack
             return true;
         } else if (id == R.id.menu_item_delete) {
-            deleteRecipe();
-            finish();
+            if(deleteRecipe()) {
+                //Close activity only if success
+                finish();
+            }
             return true;
         } else {
+            //Hey, I can have some fun right?
             View view = findViewById(android.R.id.content);
             Snackbar.make(view, "I'm going to be perfectly honest here. I have no idea what you just pressed.", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
@@ -110,57 +129,50 @@ public class ViewRecipeActivity extends AppCompatActivity {
     /**
      * Removes recipe file and clears tags from tag file
      */
-    private void deleteRecipe() {
+    private boolean deleteRecipe() {
 
-        //Remove recipe file
-        Log.i(TAG, "Deleting recipe: " + recipeTitle);
-        boolean deleted = recipeFile.delete();
-
-        //Determine directory to use
-        String appFileDir;
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-            appFileDir = getFilesDir().getPath();
-        } else {
-            appFileDir = Environment.getExternalStorageDirectory().getPath() + "/" + getString(R.string.top_app_directory);
-        }
-
-        //Remove tag file entry for recipe
-        TagHelper tagHelper;
         try {
-            tagHelper = new TagHelper(new File(appFileDir),this);
+
+            boolean success = true;
+
+            //Remove recipe file
+            Log.i(TAG, "Deleting recipe: " + recipeTitle);
+            boolean deleted = recipeFile.delete();
+
+            //Remove tag file entry for recipe
+            boolean tagDeleted = new TagHelper(new File(dh.getAppDirPath()),this).removeRecipe(recipeTitle);
+
+            //Log details of attempt
+            if(deleted){
+                Log.i(TAG, recipeFile.getName() + " deleted");
+            } else {
+                Log.e(TAG, "Failure attempting to delete: " + recipeFile.getName());
+                success = false;
+            }
+            if(tagDeleted){
+                Log.i(TAG, recipeTitle + " tag deleted");
+            } else {
+                Log.e(TAG, "Failure attempting to delete tags for: " + recipeFile.getName());
+                success = false;
+            }
+
+            return success;
+
         }catch (IOException ex){
             Snackbar.make(findViewById(android.R.id.content), "Failure interacting with the tag file",
                     Snackbar.LENGTH_LONG).setAction("Action", null).show();
             Log.e(TAG, "Trouble with tag file when trying to delete: " + recipeTitle);
-            return;
-        }
-        tagHelper.removeRecipe(recipeTitle);
-
-        //Log details of attempt
-        if(deleted){
-            Log.i(TAG, recipeFile.getName() + " deleted");
-        } else {
-            Log.e(TAG, "Failure attempting to delete: " + recipeFile.getName());
+            return false;
         }
     }
 
     /**
-     * Go to edit view, pass in File Directory used, recipe title, and that an edit action will occur
+     * Go to edit view, pass in recipe title, and notify that an edit action will occur
      */
     private void goToEditRecipe(){
-        Intent intent = new Intent(findViewById(android.R.id.content).getContext(),
-                EditRecipeActivity.class);
+        Intent intent = new Intent(findViewById(android.R.id.content).getContext(), EditRecipeActivity.class);
         intent.putExtra(RECIPE_EDIT,true);
         intent.putExtra(RECIPE_TITLE, recipeTitle);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-            intent.putExtra(APP_FILE_DIR,Environment.getExternalStorageDirectory().getPath()
-                    + "/" + getString(R.string.top_app_directory));
-        } else {
-            intent.putExtra(APP_FILE_DIR, getFilesDir().getPath());
-        }
 
         startActivity(intent);
     }

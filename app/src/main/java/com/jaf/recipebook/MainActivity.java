@@ -31,34 +31,33 @@ public class MainActivity extends AppCompatActivity {
     public final static String RECIPE_VIEW = "com.jaf.recipebook.RECIPE_VIEW";
     public final static String APP_FILE_DIR = "com.jaf.recipebook.APP_FILE_DIR";
 
-    final int STORAGE_INTERNAL = 0;
-    final int STORAGE_EXTERNAL = 1;
     public int storageOption;
     public String appFileDir;
+
+    DirectoryHelper dh = new DirectoryHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-            storageOption = STORAGE_INTERNAL;
-        } else {
-            storageOption = STORAGE_EXTERNAL;
-        }
-
-        Intent intent = getIntent();
-        if(storageOption == STORAGE_EXTERNAL){
-            appFileDir = Environment.getExternalStorageDirectory().getPath() + "/" + getString(R.string.top_app_directory);
+        //Determine app file directory
+        storageOption = dh.getStorageOption();
+        if(storageOption == dh.STORAGE_EXTERNAL){
             Log.i("MainActivity", "EXTERNAL USED");
         } else {
-            appFileDir = getFilesDir().getPath();
             Log.i("MainActivity", "INTERNAL USED");
         }
+        appFileDir = dh.getAppDirPath();
+
+        //Run the rest of the setup
         displayPage();
     }
 
+    /**
+     * When you navigate away from the activity, then come back.
+     * <p>Could be from leaving the application, or moving between activities</p>
+     */
     @Override
     public void onResume()
     {  // After a pause OR at startup
@@ -66,9 +65,14 @@ public class MainActivity extends AppCompatActivity {
         displayPage();
     }
 
+    /**
+     * Get and display info for main screen
+     * <p>This includes all recipes, or a fallback screen if no recipes exist</p>
+     */
     public void displayPage() {
 
-        if(storageOption == STORAGE_EXTERNAL) {
+        //Make sure App external folder exists if we are allowed external access
+        if(storageOption == dh.STORAGE_EXTERNAL) {
             checkExternalDirectory();
         }
 
@@ -81,11 +85,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Retrieve all file names from app folder and sort alphabetically (remove extension as well)
         String[] recipeTitles = getRecipeFiles();
         Arrays.sort(recipeTitles);
         Log.i("MainActivity", "Files under directory [" + appFileDir + "]:");
 
         if (recipeTitles == null || recipeTitles.length != 0) {
+            //What to do if no recipes exist
+
             //Get ListView layout for inflating in data
             ListView listView = (ListView) findViewById(R.id.recipe_list_view);
 
@@ -93,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
             RecipeListAdapter adapter = new RecipeListAdapter(this, recipeTitles);
             listView.setAdapter(adapter);
         } else {
+            //What to do if recipes exist in folder
             //Remove existing child view, replace with inflated layout
             View currentChildView = findViewById(R.id.recipe_list_view);
             if(currentChildView != null) {
@@ -158,16 +166,24 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * On click method for recipe list items
+     * @param view Activity view
+     */
     public void onRecipeClicked(View view){
         TextView tv = (TextView) view;
         String recipeName = tv.getText().toString();
 
         Intent intent = new Intent(view.getContext(), ViewRecipeActivity.class);
         intent.putExtra(RECIPE_VIEW,recipeName);
-        intent.putExtra(APP_FILE_DIR, appFileDir);
         startActivity(intent);
     }
 
+    /**
+     * You can find my sass comments over in ViewRecipeActivity.class for this construct
+     * @param menu Trust me, you're not missing anything
+     * @return Yep, definitely
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -175,14 +191,14 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * What to do when setting item selected. There's only one at the time of writing this, so... yeah
+     * @param item Settings. It's only settings
+     * @return Yep, you selected Settings.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             View view = findViewById(android.R.id.content);
             Snackbar.make(view, "You clicked settings. Shame that doesn't do anything yet, huh?", Snackbar.LENGTH_LONG)
@@ -192,6 +208,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Verify app external folder exists. Create if not.
+     */
     private void checkExternalDirectory(){
         View view = findViewById(android.R.id.content);
         String mainDir = getString(R.string.top_app_directory);
@@ -207,32 +226,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Stop users from going back to the setup screen
+     */
     @Override
     public void onBackPressed() {
-        moveTaskToBack(true);
+        moveTaskToBack(true); //Its that easy
     }
 
 }
-
-
-
-//AlertDialog.Builder builder;
-//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//    builder = new AlertDialog.Builder(context, android.R.style.Theme_Material_Dialog_Alert);
-//} else {
-//    builder = new AlertDialog.Builder(context);
-//}
-//builder.setTitle("Delete entry")
-//.setMessage("Are you sure you want to delete this entry?")
-//.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-//    public void onClick(DialogInterface dialog, int which) {
-//        // continue with delete
-//    }
-//})
-//.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-//    public void onClick(DialogInterface dialog, int which) {
-//        // do nothing
-//    }
-//})
-//.setIcon(android.R.drawable.ic_dialog_alert)
-//.show();
