@@ -175,7 +175,7 @@ public class EditRecipeActivity extends AppCompatActivity {
             }
         } else {
             //User didn't fill in all necessary fields
-            Snackbar.make(view, "Fill out Title, Ingredients, and Directions to save", Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "Fill out Title, Ingredients, and Directions to save\n':' not allowed in title", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
     }
@@ -248,7 +248,7 @@ public class EditRecipeActivity extends AppCompatActivity {
     public boolean areFieldsFilled(){
         //Validate Title filled out
         EditText titleEditText = (EditText) findViewById(R.id.edit_text_recipe_title);
-        if(titleEditText.getText().toString().equals("")){
+        if(titleEditText.getText().toString().equals("") || titleEditText.getText().toString().contains(":")){
             return false;
         }
 

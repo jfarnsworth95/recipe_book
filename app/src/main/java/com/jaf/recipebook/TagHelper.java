@@ -61,10 +61,6 @@ public class TagHelper {
             tags.set(i,tags.get(i).toLowerCase());
         }
 
-        for(String tag: tags){
-            Log.i(TAG, "\tTags in list: " + tag);
-        }
-
         try {
             //Write to temporary file to ensure no data loss
             FileWriter writer = new FileWriter(tmpFile.getPath(),false);
@@ -82,7 +78,6 @@ public class TagHelper {
                 if (!newEntry.contains("," + tag)) { //Check if tag already exists, if so do nothing
                     //Add to recipe
                     newEntry = newEntry.concat("," + tag);
-                    Log.i(TAG, "recipe tag entry so far: " + newEntry);
                 }
             }
             Log.i(TAG, "Writing: " + newEntry);
