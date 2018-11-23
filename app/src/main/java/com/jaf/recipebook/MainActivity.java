@@ -19,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import java.io.File;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     public int storageOption;
     public String appFileDir;
+    public boolean showSearchView = false;
 
     DirectoryHelper dh = new DirectoryHelper(this);
 
@@ -198,12 +200,27 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            View view = findViewById(android.R.id.content);
-            Snackbar.make(view, "You clicked settings. Shame that doesn't do anything yet, huh?", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-            return true;
+        View view = findViewById(android.R.id.content);
+
+        switch (item.getItemId()) {
+
+            //Go to settings
+            case R.id.action_settings:
+                Snackbar.make(view, "You clicked settings. Shame that doesn't do anything yet, huh?", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+                return true;
+
+            //Toggle search view
+            case R.id.search_btn:
+                showSearchView = !showSearchView;
+                SearchView searchView = (SearchView) findViewById(R.id.main_search_bar);
+                if(showSearchView){
+                    searchView.setVisibility(View.VISIBLE);
+                } else {
+                    searchView.setVisibility(View.GONE);
+                }
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
     }

@@ -3,6 +3,7 @@
     <string name="no_recipe_text">Looks like you don\'t have any recipes, you should add some!</string>
     <string name="recipe_edit_button">Edit</string>
     <string name="top_app_directory">RecipeBook</string>
+    <string name="search_btn_title">Search Button</string>
 
     <string name="edit_recipe_title">Recipe Title</string>
     <string name="edit_recipe_tag">Tags</string>
