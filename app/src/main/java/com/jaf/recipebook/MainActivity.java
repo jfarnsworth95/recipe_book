@@ -2,6 +2,7 @@ package com.jaf.recipebook;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -36,7 +37,9 @@ public class MainActivity extends AppCompatActivity {
     public String appFileDir;
     public boolean showSearchView = false;
 
+    Context context = this;
     DirectoryHelper dh = new DirectoryHelper(this);
+    FilterHelper fh = new FilterHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +54,35 @@ public class MainActivity extends AppCompatActivity {
             Log.i("MainActivity", "INTERNAL USED");
         }
         appFileDir = dh.getAppDirPath();
+
+        //Set listener for search view
+        SearchView searchView = (SearchView) findViewById(R.id.main_search_bar);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //Do nothing
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                String[] recipeTitles;
+                if(newText.equals("")){
+                    recipeTitles = getRecipeFiles();
+                } else {
+                    //Get matching Recipes
+                    recipeTitles = fh.getRecipesWithQuery(newText);
+                }
+                //Get ListView layout for inflating in data
+                ListView listView = (ListView) findViewById(R.id.recipe_list_view);
+
+                //inflate data from directories
+                Arrays.sort(recipeTitles);
+                RecipeListAdapter adapter = new RecipeListAdapter(context, recipeTitles);
+                listView.setAdapter(adapter);
+                return false;
+            }
+        });
 
         //Run the rest of the setup
         displayPage();
@@ -93,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i("MainActivity", "Files under directory [" + appFileDir + "]:");
 
         if (recipeTitles == null || recipeTitles.length != 0) {
-            //What to do if no recipes exist
+            //What to do if recipes exist
 
             //Get ListView layout for inflating in data
             ListView listView = (ListView) findViewById(R.id.recipe_list_view);
@@ -102,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             RecipeListAdapter adapter = new RecipeListAdapter(this, recipeTitles);
             listView.setAdapter(adapter);
         } else {
-            //What to do if recipes exist in folder
+            //What to do if no recipes exist in folder
             //Remove existing child view, replace with inflated layout
             View currentChildView = findViewById(R.id.recipe_list_view);
             if(currentChildView != null) {

@@ -56,7 +56,6 @@ public class TagHelper {
         File tmpFile = new File(mainDir, "tmp.txt");
 
         //Set to lower case for easy matching
-        recipeTitle = recipeTitle.toLowerCase();
         for(int i = 0; i < tags.size(); i ++){
             tags.set(i,tags.get(i).toLowerCase());
         }
@@ -117,9 +116,6 @@ public class TagHelper {
         //Create temp file for swapping
         File tmpFile = new File(mainDir, "tmp.txt");
 
-        //Set to lower case for easy matching
-        recipeTitle = recipeTitle.toLowerCase();
-
         //Check if recipe exists in file
         try {
             FileWriter writer = new FileWriter(tmpFile.getPath(),false);
@@ -130,7 +126,7 @@ public class TagHelper {
 
             while ((st = br.readLine()) != null) {
                 //Check if recipe exists in file
-                if(!st.contains(recipeTitle)){ //Do not write if recipe title in line
+                if(!st.contains(recipeTitle + ":,")){ //Do not write if recipe title in line
                     writer.write(st);
                 } else {
                     Log.i(TAG, "Removing recipe from tag file via omission [" + recipeTitle + "]");
