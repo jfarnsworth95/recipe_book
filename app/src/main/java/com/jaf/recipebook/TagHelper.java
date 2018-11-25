@@ -68,7 +68,7 @@ public class TagHelper {
             String st;
 
             while ((st = br.readLine()) != null) {
-                writer.write(st);
+                writer.write(st + "\n");
             }
 
             //Add recipe in
@@ -79,7 +79,7 @@ public class TagHelper {
                     newEntry = newEntry.concat("," + tag);
                 }
             }
-            Log.i(TAG, "Writing: " + newEntry);
+            Log.i(TAG, "Writing to temp file: " + newEntry);
             writer.write(newEntry + "\n");
 
             writer.close();
@@ -91,7 +91,7 @@ public class TagHelper {
             while ((st = br.readLine()) != null) {
                 //TODO Delete log statement after testing
                 Log.i(TAG, "Writing from tmp to tagfile {" + st + "}");
-                writer.write(st);
+                writer.write(st + "\n");
             }
 
             //Close to save
@@ -127,7 +127,7 @@ public class TagHelper {
             while ((st = br.readLine()) != null) {
                 //Check if recipe exists in file
                 if(!st.contains(recipeTitle + ":,")){ //Do not write if recipe title in line
-                    writer.write(st);
+                    writer.write(st + "\n");
                 } else {
                     Log.i(TAG, "Removing recipe from tag file via omission [" + recipeTitle + "]");
                     recipeExists = true;
@@ -140,7 +140,7 @@ public class TagHelper {
             br = new BufferedReader(new FileReader(tmpFile));
             writer = new FileWriter(tagFile,false);
             while ((st = br.readLine()) != null) {
-                writer.write(st);
+                writer.write(st + "\n");
             }
 
             writer.close();

@@ -284,3 +284,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
 }
+
+
+
+
+
+
+
+
+
+//TODO tags not saving
+//TODO Change edit to use icons instead of dropdown
+
+
+
+
+
+
