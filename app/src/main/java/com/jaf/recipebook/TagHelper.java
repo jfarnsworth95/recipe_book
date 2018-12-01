@@ -208,7 +208,7 @@ public class TagHelper {
                 if(st.contains(recipeTitle + ":")){ //Do not write if recipe title in line
                     String tagsAsString = st.split(":")[1];
                     for(String tag: tagsAsString.split(",")){
-                        if(!tag.equals("")) {
+                        if(!tag.equals("") && !tags.contains(tag)) {
                             tags.add(tag);
                         }
                     }
