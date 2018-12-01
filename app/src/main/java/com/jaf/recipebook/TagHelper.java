@@ -89,8 +89,6 @@ public class TagHelper {
             br = new BufferedReader(new FileReader(tmpFile));
             writer = new FileWriter(tagFile,false);
             while ((st = br.readLine()) != null) {
-                //TODO Delete log statement after testing
-                Log.i(TAG, "Writing from tmp to tagfile {" + st + "}");
                 writer.write(st + "\n");
             }
 
