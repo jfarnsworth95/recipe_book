@@ -98,6 +98,7 @@ public class EditRecipeActivity extends AppCompatActivity {
         ArrayList<String> tagList = tagHelper.getTagsForRecipe(recipeTitle);
         String tags = "";
         for (String tag: tagList){
+            Log.i(TAG, "Tag for setting Edit Field: " + tag);
             tags = tags.concat(tag);
             if(tagList.indexOf(tag) != tagList.size() -1){
                 tags = tags.concat(", ");
@@ -260,11 +261,7 @@ public class EditRecipeActivity extends AppCompatActivity {
 
         //Validate Directions filled out
         EditText directionsEditText = (EditText) findViewById(R.id.editText_recipe_directions);
-        if(directionsEditText.getText().toString().equals("")){
-            return false;
-        }
-
-        return true;
+        return !directionsEditText.getText().toString().equals("");
     }
 
     /**
